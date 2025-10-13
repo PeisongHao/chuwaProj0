@@ -1,7 +1,7 @@
 const User = require("../models/User");
 
 //传入的是user的id，用于用户完成登陆后加载用户信息
-const getOneUser = async (req, res,next) => {
+const getOneUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params?.id);
     res.status(200).json(user);
@@ -11,11 +11,11 @@ const getOneUser = async (req, res,next) => {
   }
 };
 
-const createUser = async (req, res,next) => {
+const createUser = async (req, res, next) => {
   try {
     const user = new User(req.body);
     if (!user.username || !user.email || !user.password) {
-      const err = new Error('Please provide all fields');
+      const err = new Error("Please provide all fields");
       err.statusCode = 400;
       next(err);
       return;
@@ -28,11 +28,11 @@ const createUser = async (req, res,next) => {
   }
 };
 
-const updateUserPassword = async (req, res,next) => {
+const updateUserPassword = async (req, res, next) => {
   try {
     const user = await User.findOne({ username: req.body?.username });
     if (!user) {
-      const err = new Error('Not Found');
+      const err = new Error("Not Found");
       err.statusCode = 404;
       next(err);
       return;
@@ -46,11 +46,11 @@ const updateUserPassword = async (req, res,next) => {
   }
 };
 
-const updateUserProductList = async (req, res,next) => {
+const updateUserProductList = async (req, res, next) => {
   try {
-    const user = await User.findOne({ username: req.body?.username });
+    const user = await User.findById(req.user);
     if (!user) {
-      const err = new Error('Not Found');
+      const err = new Error("Not Found");
       err.statusCode = 404;
       next(err);
       return;
@@ -66,32 +66,33 @@ const updateUserProductList = async (req, res,next) => {
 
 const updateUserCart = async (req, res, next) => {
   try {
-   const user = await User.findOne({ username: req.body?.username });
+    const user = await User.findById(req.user);
     if (!user) {
-      const err = new Error('Not Found');
+      const err = new Error("Not Found");
       err.statusCode = 404;
       next(err);
       return;
     }
-    const item = user.cart.find(entry => entry.product.equals(req.body?.productId));
-    if(!item){
+    const item = user.cart.find((entry) =>
+      entry.product.equals(req.body?.productId)
+    );
+    if (!item) {
       user.cart.push({ product: req.body?.productId, amount });
-    }else {
+    } else {
       item.amount = req.body?.amount;
     }
-    user.cart = user.cart.filter(entry => !entry.product.equals(productId));
+    user.cart = user.cart.filter((entry) => !entry.product.equals(productId));
     await user.save();
     res.status(200).json(user);
-
   } catch (err) {
     console.log(err.message);
     res.status(500).json({ message: err.message });
   }
-}
+};
 module.exports = {
-    getOneUser,
-    createUser,
-    updateUserPassword,
-    updateUserProductList,
-    updateUserCart
-}
+  getOneUser,
+  createUser,
+  updateUserPassword,
+  updateUserProductList,
+  updateUserCart,
+};
