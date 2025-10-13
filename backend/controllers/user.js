@@ -81,7 +81,7 @@ const updateUserCart = async (req, res, next) => {
     } else {
       item.amount = req.body?.amount;
     }
-    user.cart = user.cart.filter((entry) => !entry.product.equals(productId));
+    user.cart = user.cart = user.cart.filter(entry => entry.amount > 0);
     await user.save();
     res.status(200).json(user);
   } catch (err) {
