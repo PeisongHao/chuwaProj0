@@ -14,7 +14,7 @@ const getOneUser = async (req, res, next) => {
 const createUser = async (req, res, next) => {
   try {
     const user = new User(req.body);
-    if (!user.username || !user.email || !user.password) {
+    if (!user.username || !user.password) {
       const err = new Error("Please provide all fields");
       err.statusCode = 400;
       next(err);
@@ -81,7 +81,7 @@ const updateUserCart = async (req, res, next) => {
     } else {
       item.amount = req.body?.amount;
     }
-    user.cart = user.cart = user.cart.filter(entry => entry.amount > 0);
+    user.cart = user.cart = user.cart.filter((entry) => entry.amount > 0);
     await user.save();
     res.status(200).json(user);
   } catch (err) {
