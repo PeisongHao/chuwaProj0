@@ -39,7 +39,7 @@ const updateProduct = async (req, res, next) => {
       next(err);
       return;
     }
-    if (product.Owner.toString() !== req.body.user) {
+    if (product.Owner.toString() !== req.user.id) {
       const err = new Error("Do Not have permssion to update");
       err.statusCode = 400;
       next(err);

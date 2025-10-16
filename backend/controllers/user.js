@@ -66,7 +66,7 @@ const updateUserProductList = async (req, res, next) => {
 
 const updateUserCart = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user);
+    const user = await User.findById(req.user.id);
     if (!user) {
       const err = new Error("Not Found");
       err.statusCode = 404;
@@ -77,7 +77,10 @@ const updateUserCart = async (req, res, next) => {
       entry.product.equals(req.body?.productId)
     );
     if (!item) {
-      user.cart.push({ product: req.body?.productId, amount });
+      user.cart.push({
+        product: req.body?.productId,
+        amount: req.body?.amount,
+      });
     } else {
       item.amount = req.body?.amount;
     }
