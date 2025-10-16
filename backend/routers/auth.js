@@ -30,7 +30,7 @@ router.post("/login", async (req, res, next) => {
       expiresIn: "30d",
     });
 
-    res.json({ token });
+    res.json({ token,user });
   } catch (err) {
     next(err);
   }
