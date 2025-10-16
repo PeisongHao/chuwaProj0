@@ -22,7 +22,7 @@ const creatProduct = async (req, res, next) => {
     const product = new Product(req.body);
     await product.save();
     req.productId = product._id;
-    req.username = product.Owner;
+    req.user = product.Owner;
     next();
   } catch (err) {
     err.statusCode = 500;
@@ -39,8 +39,8 @@ const updateProduct = async (req, res, next) => {
       next(err);
       return;
     }
-    if (product.Owner !== req.user) {
-      const err = new Error("Do Not have premssion to update");
+    if (product.Owner.toString() !== req.body.user) {
+      const err = new Error("Do Not have permssion to update");
       err.statusCode = 400;
       next(err);
       return;
