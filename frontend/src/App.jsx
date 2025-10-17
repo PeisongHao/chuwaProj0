@@ -1,10 +1,29 @@
-import './App.css'
+import "./App.css";
+import React from "react";
+import { Layout } from "antd";
+const { Content } = Layout;
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import PageHeader from "./components/PageHeader";
+import PageFooter from "./components/PageFooter";
+import Product from "./pages/Product";
 
 function App() {
-
   return (
-    <h1 className="text-3xl font-bold underline">Hello Tailwind!</h1>
-  )
+    <>
+      <Router>
+        <Layout>
+          <PageHeader />
+          <Content style={{ padding: "0 48px" }}>
+            <Routes>
+              <Route path="/" element={<Product />} />
+            </Routes>
+          </Content>
+          <PageFooter />
+        </Layout>
+      </Router>
+    </>
+  );
 }
 
-export default App
+export default App;
