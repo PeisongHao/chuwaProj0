@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
 //传入的是user的id，用于用户完成登陆后加载用户信息
 const getOneUser = async (req, res, next) => {
@@ -21,7 +22,16 @@ const createUser = async (req, res, next) => {
       return;
     }
     await user.save();
-    res.status(201).json(user);
+
+    const payload = {
+      user: {
+        id: user._id,
+      },
+    };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+    res.status(201).json({token,productList : user.productList, cartList : user.cart});
   } catch (err) {
     err.statusCode = 500;
     next(err);
@@ -30,6 +40,7 @@ const createUser = async (req, res, next) => {
 
 const updateUserPassword = async (req, res, next) => {
   try {
+    console.log(req.body);
     const user = await User.findOne({ username: req.body?.username });
     if (!user) {
       const err = new Error("Not Found");
@@ -39,7 +50,16 @@ const updateUserPassword = async (req, res, next) => {
     }
     user.password = req.body.password;
     await user.save();
-    res.status(200).json({ message: "Success update User's Password" });
+
+    const payload = {
+      user: {
+        id: user._id,
+      },
+    };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+    res.status(200).json({token,productList : user.productList, cartList : user.cart});
   } catch (err) {
     err.statusCode = 500;
     next(err);

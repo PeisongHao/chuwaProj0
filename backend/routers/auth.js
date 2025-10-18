@@ -13,11 +13,13 @@ router.post("/login", async (req, res, next) => {
       const err = new Error("Not Found");
       err.statusCode = 404;
       next(err);
+      return;
     }
     if (user.password !== password) {
       const err = new Error("Invalid Credentials");
       err.statusCode = 400;
       next(err);
+      return;
     }
 
     const payload = {
@@ -30,7 +32,7 @@ router.post("/login", async (req, res, next) => {
       expiresIn: "30d",
     });
 
-    res.json({ token,user });
+    res.json({token,productList : user.productList, cartList : user.cart});
   } catch (err) {
     next(err);
   }
