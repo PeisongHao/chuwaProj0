@@ -10,7 +10,18 @@ const getAllProduct = async (req, res, next) => {
   }
 };
 
-const creatProduct = async (req, res, next) => {
+const getOneProduct = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params?.id);
+    res.set("Access-Control-Allow-Origin", "*");
+    res.status(200).json(product);
+  } catch (err) {
+    err.statusCode = 500;
+    next(err);
+  }
+};
+
+const createProduct = async (req, res, next) => {
   try {
     const oldProduct = await Product.findOne(req.body);
     if (oldProduct) {
@@ -61,6 +72,7 @@ const updateProduct = async (req, res, next) => {
 
 module.exports = {
   getAllProduct,
-  creatProduct,
+  getOneProduct,
+  createProduct,
   updateProduct,
 };
