@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Layout, Typography, Row, Col, Tag, Button, InputNumber } from "antd";
 import { fetchDetailById } from "../feature/product/detailSlice";
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
 const Detail = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
   const dispatch = useDispatch();
   const detail = useSelector((state) => state.detail.data);
@@ -18,14 +17,16 @@ const Detail = () => {
     if (status === "idle") {
       dispatch(fetchDetailById(id));
     }
+    if (status === "succeeded") {
+      if (id !== detail._id) {
+        // Do API call again to clear old data
+        dispatch(fetchDetailById(id));
+      }
+    }
   }, [status, dispatch, id]);
 
   const onChange = (value) => {
     setCount(value);
-  };
-
-  const handleEdit = () => {
-    navigate(`/edit/${id}`);
   };
 
   let product;
@@ -86,9 +87,9 @@ const Detail = () => {
             <Button type="primary" style={{ fontSize: "16px" }}>
               Add To Cart
             </Button>
-            <Button style={{ fontSize: "16px" }} onClick={handleEdit}>
-              Edit
-            </Button>
+            <Link to={`/edit/${id}`}>
+              <Button style={{ fontSize: "16px" }}>Edit</Button>
+            </Link>
           </Col>
         </Row>
       </>

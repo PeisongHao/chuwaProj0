@@ -31,6 +31,7 @@ const createProduct = async (req, res, next) => {
       return;
     }
     const product = new Product(req.body);
+    product.Owner = req.user.id;
     await product.save();
     req.productId = product._id;
     req.user = product.Owner;

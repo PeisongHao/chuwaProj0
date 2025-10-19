@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { Form, Input, Select, Space, Button, Typography, Image } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  Space,
+  Button,
+  Typography,
+  Image,
+  message,
+} from "antd";
 import { FileImageOutlined } from "@ant-design/icons";
 const { Text } = Typography;
 import { fetchDetailById } from "../feature/product/detailSlice";
@@ -11,12 +20,14 @@ const ProductForm = () => {
   const dispatch = useDispatch();
   const [imageLink, setImageLink] = useState("");
   const inputRef = useRef(null);
+  const [messageApi, contextHolder] = message.useMessage();
+  const token = useSelector((state) => state.auth.token);
 
   let status, detail, name, description, category, price, stock, image;
   if (id === undefined) {
     // No ID, create page
     name, description, price, stock, (image = "");
-    category = "Category1";
+    category = "PC";
   } else {
     // Edit page, API call
     detail = useSelector((state) => state.detail.data);
@@ -36,7 +47,42 @@ const ProductForm = () => {
     if (id !== undefined && status === "idle") {
       dispatch(fetchDetailById(id));
     }
+    if (id !== undefined && status === "succeeded") {
+      if (id !== detail._id) {
+        // Do API call again to clear old data
+        dispatch(fetchDetailById(id));
+      }
+    }
   }, [status, dispatch, id]);
+
+  const submit = async (value) => {
+    value.price = parseInt(value.price);
+    value.stock = parseInt(value.stock);
+    console.log(value);
+    console.log(token);
+    let apiUrl, method;
+    if (id !== undefined) {
+      apiUrl = `http://localhost:3000/api/product/${id}`;
+      method = "PUT";
+    } else {
+      apiUrl = `http://localhost:3000/api/product/`;
+      method = "POST";
+    }
+    fetch(apiUrl, {
+      method: method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(value),
+    }).then((response) => {
+      if (!response.ok) {
+        messageApi.error("Submit error");
+      } else {
+        messageApi.success("Submit success");
+      }
+    });
+  };
 
   // Image preview area
   let imageArea;
@@ -87,75 +133,90 @@ const ProductForm = () => {
   // If ID provided (edit page), only load initial value after API call succeeded
   if (id === undefined || status === "succeeded") {
     return (
-      <Form
-        name="product"
-        layout="vertical"
-        initialValues={{
-          productName: name,
-          description: description,
-          category: category,
-          price: price,
-          stock: stock,
-        }}
-      >
-        <Form.Item
-          label="Product Name"
-          name="productName"
-          rules={[{ required: true }]}
+      <>
+        {contextHolder}
+        <Form
+          name="product"
+          layout="vertical"
+          initialValues={{
+            productName: name,
+            description: description,
+            category: category,
+            price: price,
+            stock: stock,
+          }}
+          onFinish={submit}
+          onFinishFailed={() => {
+            messageApi.error("Submit error");
+          }}
         >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Product Description"
-          name="description"
-          rules={[{ required: true }]}
-        >
-          <Input.TextArea rows={4} />
-        </Form.Item>
-        <div style={{ display: "flex", width: "100%", gap: "8px" }}>
-          <Form.Item label="Category" name="category">
-            <Select>
-              <Select.Option value="Category1">Category1</Select.Option>
-              <Select.Option value="Category2">Category2</Select.Option>
-              <Select.Option value="Category3">Category3</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item label="Price" name="price" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-        </div>
-        <div style={{ display: "flex", width: "100%", gap: "8px" }}>
           <Form.Item
-            label="In Stock Quantity"
-            name="stock"
-            rules={[{ required: true }]}
+            label="Product Name"
+            name="productName"
+            rules={[{ required: true, message: "This field is required" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            label="Add Image Link"
-            name="image"
-            rules={[{ required: true }]}
+            label="Product Description"
+            name="description"
+            rules={[{ required: true, message: "This field is required" }]}
           >
-            <Space.Compact block>
-              <Input defaultValue={image} ref={inputRef} />
-              <Button
-                type="primary"
-                onClick={() => setImageLink(inputRef.current.input.value)}
-              >
-                Preview
-              </Button>
-            </Space.Compact>
+            <Input.TextArea rows={4} />
           </Form.Item>
-        </div>
-        {imageArea}
-        <br />
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Add Product
-          </Button>
-        </Form.Item>
-      </Form>
+          <div style={{ display: "flex", width: "100%", gap: "8px" }}>
+            <Form.Item label="Category" name="category">
+              <Select>
+                <Select.Option value="PC">PC</Select.Option>
+                <Select.Option value="Laptop">Laptop</Select.Option>
+                <Select.Option value="Tablet">Tablet</Select.Option>
+                <Select.Option value="Phone">Phone</Select.Option>
+                <Select.Option value="Watch">Watch</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item label="Price" name="price">
+              <Input addonBefore="$" />
+            </Form.Item>
+          </div>
+          <div style={{ display: "flex", width: "100%", gap: "8px" }}>
+            <Form.Item
+              label="In Stock Quantity"
+              name="stock"
+              rules={[
+                { pattern: new RegExp(/^[0-9]+$/), message: "Input not valid" },
+                { required: true, message: "This field is required" },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Add Image Link"
+              name="image"
+              rules={[
+                { type: "url", message: "Input not valid" },
+                { required: true, message: "This field is required" },
+              ]}
+            >
+              <Space.Compact block>
+                <Input defaultValue={image} ref={inputRef} />
+                <Button
+                  type="primary"
+                  onClick={() => setImageLink(inputRef.current.input.value)}
+                >
+                  Preview
+                </Button>
+              </Space.Compact>
+            </Form.Item>
+          </div>
+          {imageArea}
+          <br />
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Add Product
+            </Button>
+          </Form.Item>
+        </Form>
+      </>
     );
   } else if (status === "loading") {
     return "Loading...";

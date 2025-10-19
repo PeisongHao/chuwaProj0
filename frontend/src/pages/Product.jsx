@@ -1,8 +1,108 @@
 import React, { useState, useEffect } from "react";
-import { Layout } from "antd";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import {
+  Layout,
+  Typography,
+  List,
+  Card,
+  InputNumber,
+  Button,
+  Select,
+  Flex,
+} from "antd";
 const { Content } = Layout;
+const { Text } = Typography;
+const { Meta } = Card;
+import { fetchAll } from "../feature/product/productSlice";
 
 const Product = () => {
+  const dispatch = useDispatch();
+  const products = useSelector((state) => state.product.data);
+  const status = useSelector((state) => state.product.status);
+
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchAll());
+    }
+  }, [status, dispatch]);
+
+  let list;
+  if (status === "loading") {
+    list = "Loading...";
+  } else if (status === "succeeded") {
+    list =
+      products.length === 0 ? (
+        "No products found."
+      ) : (
+        <List
+          style={{ marginTop: 20 }}
+          grid={{
+            gutter: 16,
+            xs: 1,
+            sm: 2,
+            md: 3,
+            lg: 4,
+            xl: 5,
+            xxl: 5,
+          }}
+          dataSource={products}
+          renderItem={(item) => (
+            <List.Item>
+              <Card
+                cover={
+                  <Link to={`/product/${item._id}`}>
+                    <img
+                      alt="Image load failed"
+                      src={item.image}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                      }}
+                    />
+                  </Link>
+                }
+                key={item._id}
+              >
+                <Text
+                  ellipsis={true}
+                  style={{ fontSize: "14px", color: "#6b7280", maxWidth: 150 }}
+                >
+                  {item.productName}
+                </Text>
+                <br />
+                <Text strong style={{ fontSize: "16px", color: "#111827" }}>
+                  ${item.price}
+                </Text>
+                <br />
+                <InputNumber
+                  min={0}
+                  max={item.stock}
+                  defaultValue={0}
+                  style={{ fontSize: "12px", width: "50%" }}
+                />
+                <Link to={`/edit/${item._id}`}>
+                  <Button
+                    style={{
+                      fontSize: "12px",
+                      width: "48%",
+                      float: "right",
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </Link>
+              </Card>
+            </List.Item>
+          )}
+        />
+      );
+  } else if (status === "failed") {
+    list = "Internal Server Error";
+  }
+
   return (
     <Content
       className="site-layout-background"
@@ -13,7 +113,25 @@ const Product = () => {
         overflow: "auto",
       }}
     >
-      <div>Content</div>
+      <div>
+        <Text strong style={{ fontSize: "30px" }}>
+          Products
+        </Text>
+        <Flex style={{ float: "right", gap: "5px" }}>
+          <Select
+            defaultValue="fromNew"
+            style={{ width: "180px" }}
+            options={[
+              { value: "fromNew", label: "Last Added" },
+              { value: "fromLow", label: "Price: low to high" },
+              { value: "fromHigh", label: "Price: high to low" },
+            ]}
+          />
+          <Button type="primary">Add Product</Button>
+        </Flex>
+      </div>
+      <br />
+      <div>{list}</div>
     </Content>
   );
 };
