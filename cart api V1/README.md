@@ -1,8 +1,5 @@
 # Cart API V1
 
-高性能购物车API模块，支持事务处理、优惠码状态持久化和自动过期检查。
-
-## 🚀 快速开始
 
 ### 安装和启动
 ```bash
@@ -19,7 +16,7 @@ npm run dev
 
 服务器运行在 `http://localhost:3000`
 
-## 📋 API 端点
+## API 端点
 
 ### 1. 获取购物车详情
 ```bash
@@ -61,7 +58,7 @@ DELETE /api/cart
 Headers: x-auth-token: your_jwt_token
 ```
 
-## 🧪 测试优惠码
+## 测试优惠码
 
 系统预置测试优惠码：
 - **SAVE10** - 10%折扣，最低消费$50
@@ -69,7 +66,7 @@ Headers: x-auth-token: your_jwt_token
 - **FREESHIP** - 免运费，最低消费$25
 - **EXPIRED** - 已过期（测试错误处理）
 
-## ⚡ 性能特性
+## 性能特性
 
 - **单次查询**：获取购物车和优惠码信息
 - **事务处理**：确保数据一致性
@@ -77,7 +74,7 @@ Headers: x-auth-token: your_jwt_token
 - **自动清理**：过期优惠码自动移除
 - **API整合**：合并相关功能，减少调用次数
 
-## 🔧 技术栈
+## 技术栈
 
 - **后端**: Node.js, Express, MongoDB, Mongoose
 - **前端**: React 19, Redux Toolkit, Ant Design
