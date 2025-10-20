@@ -1,0 +1,24 @@
+{
+  "name": "cart-api-v1",
+  "version": "1.0.0",
+  "description": "Cart API V1 - High Performance Shopping Cart Module for ChuwaProj0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "echo 'Cart API V1 - Development scripts will be added here'",
+    "build": "echo 'Cart API V1 - Build scripts will be added here'",
+    "test": "echo 'Cart API V1 - Test scripts will be added here'"
+  },
+  "keywords": ["cart", "api", "ecommerce", "redux", "react", "performance"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.9.0",
+    "react": "^19.1.1",
+    "react-redux": "^9.2.0",
+    "redux-persist": "^6.0.0",
+    "axios": "^1.12.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
