@@ -2,8 +2,33 @@ const Product = require("../models/Product");
 
 const getAllProduct = async (req, res, next) => {
   try {
-    const products = await Product.find();
-    res.status(200).json(products);
+    let products, page;
+    if (req.query?.page === undefined) {
+      page = 1;
+    } else {
+      page = parseInt(req.query?.page);
+    }
+    const limit = 10; // Number of products per page
+    const skip = (page - 1) * limit; // Calculate the offset
+
+    if (req.query?.sort === "fromNew") {
+      products = await Product.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+    } else if (req.query?.sort === "fromLow") {
+      products = await Product.find()
+        .sort({ price: 1 })
+        .skip(skip)
+        .limit(limit);
+    } else if (req.query?.sort === "fromHigh") {
+      products = await Product.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+    }
+    const count = await Product.countDocuments();
+    res.status(200).json({ count: count, products: products });
   } catch (err) {
     err.statusCode = 500;
     next(err);

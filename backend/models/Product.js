@@ -39,6 +39,10 @@ const productSchema = new mongoose.Schema({
       message: "Not a invaild URL",
     },
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
   Owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

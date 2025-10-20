@@ -109,7 +109,7 @@ const updateUserProductList = async (req, res, next) => {
     user.productList.push(req.productId);
     await user.save();
     res.status(200).json({
-      token,
+      //token,
       productList: user.productList,
       cartList: user.cart,
       isAdmin: user.isAdmin,

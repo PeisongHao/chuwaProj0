@@ -2,9 +2,11 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 export const fetchAll = createAsyncThunk(
   "product/all",
-  async (id, thunkAPI) => {
+  async (params, thunkAPI) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/product/`);
+      const res = await fetch(
+        `http://localhost:3000/api/product/?sort=${params.sort}&page=${params.page}`
+      );
       return res.json();
     } catch (err) {
       return thunkAPI.rejectWithValue(err.message);

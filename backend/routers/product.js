@@ -10,7 +10,7 @@ const { updateUserProductList } = require("../controllers/user");
 const router = express.Router();
 
 router.get("/", getAllProduct);
-router.get("/:id", getOneProduct);
+router.get("/detail/:id", getOneProduct);
 router.post("/", authMiddleware, createProduct, updateUserProductList);
 router.put("/:id", authMiddleware, updateProduct);
 

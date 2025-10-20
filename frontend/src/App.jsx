@@ -11,6 +11,7 @@ import Detail from "./pages/Detail";
 import Create from "./pages/Create";
 import Edit from "./pages/Edit";
 import UpdatePassword from "./pages/UpdatePassword";
+import Error from "./pages/Error";
 
 function App() {
   return (
@@ -21,10 +22,12 @@ function App() {
           <Content style={{ padding: "0 48px" }}>
             <Routes>
               <Route path="/" element={<Product />} />
+              <Route path="/home" element={<Product />} />
               <Route path="/product/:id" element={<Detail />} />
               <Route path="/create" element={<Create />} />
               <Route path="/edit/:id" element={<Edit />} />
               <Route path="/:email" element={<UpdatePassword />} />
+              <Route path="*" element={<Error />} />
             </Routes>
           </Content>
           <PageFooter />

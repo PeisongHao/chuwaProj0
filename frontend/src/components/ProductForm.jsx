@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Form,
   Input,
@@ -18,6 +18,7 @@ import { fetchDetailById } from "../feature/product/detailSlice";
 const ProductForm = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [imageLink, setImageLink] = useState("");
   const inputRef = useRef(null);
   const [messageApi, contextHolder] = message.useMessage();
@@ -58,8 +59,6 @@ const ProductForm = () => {
   const submit = async (value) => {
     value.price = parseInt(value.price);
     value.stock = parseInt(value.stock);
-    console.log(value);
-    console.log(token);
     let apiUrl, method;
     if (id !== undefined) {
       apiUrl = `http://localhost:3000/api/product/${id}`;
@@ -79,7 +78,16 @@ const ProductForm = () => {
       if (!response.ok) {
         messageApi.error("Submit error");
       } else {
-        messageApi.success("Submit success");
+        if (id !== undefined) {
+          messageApi
+            .success("Submit success", 3)
+            .then(dispatch(fetchDetailById(id)))
+            .then(navigate(`/product/${id}`));
+        } else {
+          messageApi
+            .success("Submit success", 3)
+            .then(navigate("/home?sort=fromNew&page=1"));
+        }
       }
     });
   };
@@ -192,10 +200,7 @@ const ProductForm = () => {
             <Form.Item
               label="Add Image Link"
               name="image"
-              rules={[
-                { type: "url", message: "Input not valid" },
-                { required: true, message: "This field is required" },
-              ]}
+              rules={[{ type: "url", message: "Input not valid" }]}
             >
               <Space.Compact block>
                 <Input defaultValue={image} ref={inputRef} />
@@ -212,7 +217,7 @@ const ProductForm = () => {
           <br />
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              Add Product
+              {id === undefined ? "Add Product" : "Edit Product"}
             </Button>
           </Form.Item>
         </Form>

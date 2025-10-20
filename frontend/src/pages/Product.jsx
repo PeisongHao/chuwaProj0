@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import {
   Layout,
   Typography,
@@ -10,6 +10,9 @@ import {
   Button,
   Select,
   Flex,
+  Pagination,
+  ConfigProvider,
+  Space,
 } from "antd";
 const { Content } = Layout;
 const { Text } = Typography;
@@ -18,14 +21,46 @@ import { fetchAll } from "../feature/product/productSlice";
 
 const Product = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const products = useSelector((state) => state.product.data);
   const status = useSelector((state) => state.product.status);
+  const [sort, setSort] = useState("fromNew");
+  const [page, setPage] = useState("1");
+
+  useEffect(() => {
+    if (searchParams.size === 0) {
+      navigate("/home?sort=fromNew&page=1"); // From /home to default query params
+    } else {
+      setSort(searchParams.get("sort"));
+      setPage(searchParams.get("page"));
+    }
+  }, []);
 
   useEffect(() => {
     if (status === "idle") {
-      dispatch(fetchAll());
+      dispatch(
+        fetchAll({
+          sort: searchParams.get("sort") || "fromNew", // Default value
+          page: searchParams.get("page") || 1, // Default value
+        })
+      );
     }
   }, [status, dispatch]);
+
+  const onSortChange = (value) => {
+    setSort(value);
+    navigate(`/home?sort=${value}&page=${page}`);
+    dispatch(fetchAll({ sort: value, page: searchParams.get("page") }));
+  };
+
+  const onPageChange = (value) => {
+    setPage(value);
+    navigate(`/home?sort=${sort}&page=${parseInt(value)}`);
+    dispatch(
+      fetchAll({ sort: searchParams.get("sort"), page: parseInt(value) })
+    );
+  };
 
   let list;
   if (status === "loading") {
@@ -35,69 +70,96 @@ const Product = () => {
       products.length === 0 ? (
         "No products found."
       ) : (
-        <List
-          style={{ marginTop: 20 }}
-          grid={{
-            gutter: 16,
-            xs: 1,
-            sm: 2,
-            md: 3,
-            lg: 4,
-            xl: 5,
-            xxl: 5,
-          }}
-          dataSource={products}
-          renderItem={(item) => (
-            <List.Item>
-              <Card
-                cover={
-                  <Link to={`/product/${item._id}`}>
-                    <img
-                      alt="Image load failed"
-                      src={item.image}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                      }}
-                    />
-                  </Link>
-                }
-                key={item._id}
-              >
-                <Text
-                  ellipsis={true}
-                  style={{ fontSize: "14px", color: "#6b7280", maxWidth: 150 }}
+        <>
+          <List
+            style={{ marginTop: 20 }}
+            grid={{
+              gutter: 16,
+              xs: 1,
+              sm: 2,
+              md: 3,
+              lg: 4,
+              xl: 5,
+              xxl: 5,
+            }}
+            dataSource={products.products}
+            renderItem={(item) => (
+              <List.Item>
+                <ConfigProvider
+                  theme={{
+                    components: {
+                      Card: {
+                        bodyPadding: 12, // Change card body padding from 24 to 12
+                      },
+                    },
+                  }}
                 >
-                  {item.productName}
-                </Text>
-                <br />
-                <Text strong style={{ fontSize: "16px", color: "#111827" }}>
-                  ${item.price}
-                </Text>
-                <br />
-                <InputNumber
-                  min={0}
-                  max={item.stock}
-                  defaultValue={0}
-                  style={{ fontSize: "12px", width: "50%" }}
-                />
-                <Link to={`/edit/${item._id}`}>
-                  <Button
-                    style={{
-                      fontSize: "12px",
-                      width: "48%",
-                      float: "right",
-                    }}
+                  <Card
+                    cover={
+                      <Link to={`/product/${item._id}`}>
+                        <img
+                          alt="Image load failed"
+                          src={item.image}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "center",
+                          }}
+                        />
+                      </Link>
+                    }
+                    key={item._id}
+                    style={{ padding: "0px" }}
                   >
-                    Edit
-                  </Button>
-                </Link>
-              </Card>
-            </List.Item>
-          )}
-        />
+                    <Text
+                      ellipsis={true}
+                      style={{
+                        fontSize: "14px",
+                        color: "#6b7280",
+                        maxWidth: 150,
+                      }}
+                    >
+                      {item.productName}
+                    </Text>
+                    <br />
+                    <Text strong style={{ fontSize: "16px", color: "#111827" }}>
+                      ${item.price}
+                    </Text>
+                    <br />
+                    <div>
+                      <Space.Compact style={{ width: "48%" }}>
+                        <InputNumber
+                          min={0}
+                          max={item.stock}
+                          defaultValue={0}
+                          style={{ fontSize: "12px" }}
+                        />
+                        <Button style={{ width: "1%" }}>+</Button>
+                      </Space.Compact>
+                      <Link to={`/edit/${item._id}`}>
+                        <Button
+                          style={{
+                            fontSize: "12px",
+                            width: "48%",
+                            float: "right",
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </Link>
+                    </div>
+                  </Card>
+                </ConfigProvider>
+              </List.Item>
+            )}
+          />
+          <Pagination
+            current={page}
+            onChange={onPageChange}
+            total={products.count}
+          />
+        </>
       );
   } else if (status === "failed") {
     list = "Internal Server Error";
@@ -109,7 +171,7 @@ const Product = () => {
       style={{
         padding: 24,
         margin: 0,
-        height: 800,
+        height: 900,
         overflow: "auto",
       }}
     >
@@ -119,15 +181,18 @@ const Product = () => {
         </Text>
         <Flex style={{ float: "right", gap: "5px" }}>
           <Select
-            defaultValue="fromNew"
+            value={sort}
             style={{ width: "180px" }}
+            onChange={onSortChange}
             options={[
               { value: "fromNew", label: "Last Added" },
               { value: "fromLow", label: "Price: low to high" },
               { value: "fromHigh", label: "Price: high to low" },
             ]}
           />
-          <Button type="primary">Add Product</Button>
+          <Link to={`/create`}>
+            <Button type="primary">Add Product</Button>
+          </Link>
         </Flex>
       </div>
       <br />
