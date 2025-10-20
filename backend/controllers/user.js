@@ -9,6 +9,12 @@ const getOneUser = async (req, res, next) => {
       user: {
         id: user._id,
       },
+    };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+    res.status(200).json({
+      token,
       productList: user.productList,
       cartList: user.cart,
       isAdmin: user.isAdmin,
