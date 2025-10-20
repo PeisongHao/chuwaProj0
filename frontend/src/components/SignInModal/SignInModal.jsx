@@ -18,7 +18,7 @@ export function SigninModal({ modalOpen, setModalOpen }) {
       if (isSignIn) {
         dispatch(login({ username: values.email, password: values.password }));
       } else {
-        dispatch(signup({ username: values.email, password: values.password }));
+        dispatch(signup({ username: values.email, password: values.password,isAdmin : values.isAdmin }));
       }
     }
   };

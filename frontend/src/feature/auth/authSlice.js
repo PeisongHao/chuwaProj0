@@ -8,16 +8,18 @@ export const login = createAsyncThunk(
       username,
       password,
     });
+    console.log(res.data);
     return res.data;
   }
 );
 
 export const signup = createAsyncThunk(
   "users/signup",
-  async ({ username, password }) => {
+  async ({ username, password,isAdmin }) => {
     const res = await axios.post("http://localhost:3000/api/users", {
       username,
       password,
+      isAdmin
     });
     return res.data;
   }
@@ -41,7 +43,8 @@ const authSlice = createSlice({
     loading: false,
     error: null,
     productList: null,
-    cartList:null
+    cartList:null,
+    isAdmin:false
   },
   reducers: {
     logout(state) {
@@ -50,6 +53,7 @@ const authSlice = createSlice({
       state.token = null;
       state.loading = false;
       state.error = null;
+      state.isAdmin = false;
     },
     clearErrorMessage(state){
       state.error = null;
@@ -67,6 +71,7 @@ const authSlice = createSlice({
         state.token = action.payload?.token || null;
         state.productList = action.payload?.productList || null;
         state.cartList = action.payload?.cartList || null;
+        state.isAdmin = action.payload?.isAdmin || false;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -81,6 +86,7 @@ const authSlice = createSlice({
         state.token = action.payload?.token || null;
         state.productList = action.payload?.productList || null;
         state.cartList = action.payload?.cartList || null;
+        state.isAdmin = action.payload?.isAdmin || false;
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
@@ -95,6 +101,7 @@ const authSlice = createSlice({
         state.token = action.payload?.token || null;
         state.productList = action.payload?.productList || null;
         state.cartList = action.payload?.cartList || null;
+        state.isAdmin = action.payload?.isAdmin || false;
       })
       .addCase(updatepwd.rejected, (state, action) => {
         state.loading = false;

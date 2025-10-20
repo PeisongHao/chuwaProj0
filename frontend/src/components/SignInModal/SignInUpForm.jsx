@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Form, Input, Button } from "antd";
+import { Form, Input, Button, Checkbox } from "antd";
 import { useDispatch } from "react-redux";
 import { clearErrorMessage } from "../../feature/auth/authSlice";
 
@@ -55,40 +55,49 @@ export function SignInUpForm({
       </Form.Item>
 
       {!isSignIn && (
-        <Form.Item
-          label="Confirm Password"
-          name="confirm"
-          dependencies={["password"]}
-          hasFeedback
-          rules={[
-            { required: true, message: "Please confirm your password" },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                return !value || getFieldValue("password") === value
-                  ? Promise.resolve()
-                  : Promise.reject(new Error("Passwords do not match"));
-              },
-            }),
-          ]}
-        >
-          <Input
-            key={showPwd ? "text" : "password"}
-            size="large"
-            type={showPwd ? "text" : "password"}
-            placeholder="Repeat your password"
-            autoComplete="new-password"
-            suffix={
-              <button
-                type="button"
-                onClick={() => setShowPwd((v) => !v)}
-                className="text-gray-600 hover:text-gray-900 text-sm"
-                style={{ background: "transparent" }}
-              >
-                {showPwd ? "Hide" : "Show"}
-              </button>
-            }
-          />
-        </Form.Item>
+        <>
+          <Form.Item
+            label="Confirm Password"
+            name="confirm"
+            dependencies={["password"]}
+            hasFeedback
+            rules={[
+              { required: true, message: "Please confirm your password" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  return !value || getFieldValue("password") === value
+                    ? Promise.resolve()
+                    : Promise.reject(new Error("Passwords do not match"));
+                },
+              }),
+            ]}
+          >
+            <Input
+              key={showPwd ? "text" : "password"}
+              size="large"
+              type={showPwd ? "text" : "password"}
+              placeholder="Repeat your password"
+              autoComplete="new-password"
+              suffix={
+                <button
+                  type="button"
+                  onClick={() => setShowPwd((v) => !v)}
+                  className="text-gray-600 hover:text-gray-900 text-sm"
+                  style={{ background: "transparent" }}
+                >
+                  {showPwd ? "Hide" : "Show"}
+                </button>
+              }
+            />
+          </Form.Item>
+          <Form.Item
+            name="isAdmin"
+            valuePropName="checked" // 将复选框的选中状态映射到值
+            initialValue={false} // 默认 false
+          >
+            <Checkbox>Is Admin</Checkbox>
+          </Form.Item>
+        </>
       )}
       <Button
         type="primary"

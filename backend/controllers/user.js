@@ -5,7 +5,14 @@ const jwt = require("jsonwebtoken");
 const getOneUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params?.id);
-    res.status(200).json(user);
+    const payload = {
+      user: {
+        id: user._id,
+      },
+      productList: user.productList,
+      cartList: user.cart,
+      isAdmin: user.isAdmin,
+    });
   } catch (err) {
     err.statusCode = 500;
     next(err);
@@ -31,7 +38,12 @@ const createUser = async (req, res, next) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "30d",
     });
-    res.status(201).json({token,productList : user.productList, cartList : user.cart});
+    res.status(201).json({
+      token,
+      productList: user.productList,
+      cartList: user.cart,
+      isAdmin: user.isAdmin,
+    });
   } catch (err) {
     err.statusCode = 500;
     next(err);
@@ -59,7 +71,12 @@ const updateUserPassword = async (req, res, next) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "30d",
     });
-    res.status(200).json({token,productList : user.productList, cartList : user.cart});
+    res.status(200).json({
+      token,
+      productList: user.productList,
+      cartList: user.cart,
+      isAdmin: user.isAdmin,
+    });
   } catch (err) {
     err.statusCode = 500;
     next(err);
@@ -75,9 +92,22 @@ const updateUserProductList = async (req, res, next) => {
       next(err);
       return;
     }
+    if (!user.isAdmin) {
+      const err = new Error(
+        "Forbidden: You do not have permission to access this resource"
+      );
+      err.statusCode = 403;
+      next(err);
+      return;
+    }
     user.productList.push(req.productId);
     await user.save();
-    res.status(200).json(user);
+    res.status(200).json({
+      token,
+      productList: user.productList,
+      cartList: user.cart,
+      isAdmin: user.isAdmin,
+    });
   } catch (err) {
     console.log(err.message);
     res.status(500).json({ message: err.message });
@@ -106,7 +136,11 @@ const updateUserCart = async (req, res, next) => {
     }
     user.cart = user.cart = user.cart.filter((entry) => entry.amount > 0);
     await user.save();
-    res.status(200).json(user);
+    res.status(200).json({
+      productList: user.productList,
+      cartList: user.cart,
+      isAdmin: user.isAdmin,
+    });
   } catch (err) {
     console.log(err.message);
     res.status(500).json({ message: err.message });

@@ -32,7 +32,7 @@ router.post("/login", async (req, res, next) => {
       expiresIn: "30d",
     });
 
-    res.json({token,productList : user.productList, cartList : user.cart});
+    res.json({token,productList : user.productList, cartList : user.cart, isAdmin : user.isAdmin});
   } catch (err) {
     next(err);
   }
