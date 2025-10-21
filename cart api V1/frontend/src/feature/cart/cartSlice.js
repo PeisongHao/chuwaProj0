@@ -1,41 +1,41 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
 const initialState = {
   items: [],
-  status: 'idle',
+  status: "idle",
   error: null,
   total: 0,
   itemCount: 0,
   promoCode: null,
 };
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = "http://localhost:3000/api";
 
 const createApiRequest = async (getState, method, endpoint, data = null) => {
   const { token } = getState().auth;
   const config = {
-    headers: { 'x-auth-token': token },
-    ...(data && { data })
+    headers: { "x-auth-token": token },
+    ...(data && { data }),
   };
-  
-  const response = await axios[method](`${API_BASE_URL}${endpoint}`, config);
+
+  const response = await axios[method](`${API_BASE_URL}/${endpoint}`, config);
   return response.data;
 };
 
-const createCartApiCall = (endpoint, method = 'get') => {
+const createCartApiCall = (endpoint, method = "get") => {
   return createAsyncThunk(`cart/${endpoint}`, async (payload, { getState }) => {
     return createApiRequest(getState, method, endpoint, payload);
   });
 };
 
-export const fetchCart = createCartApiCall('cart', 'get');
-export const applyPromoCode = createCartApiCall('/cart/promo', 'post');
-export const updateCartItem = createCartApiCall('/cart/item', 'put');
-export const clearCart = createCartApiCall('cart', 'delete');
+export const fetchCart = createCartApiCall("cart", "get");
+export const applyPromoCode = createCartApiCall("cart/promo", "post");
+export const updateCartItem = createCartApiCall("cart/item", "put");
+export const clearCart = createCartApiCall("cart/clear", "delete");
 
 const updateCartState = (state, action) => {
-  state.status = 'succeeded';
+  state.status = "succeeded";
   if (action.payload.cartItems) {
     state.items = action.payload.cartItems;
     state.total = action.payload.summary?.finalTotal || 0;
@@ -45,7 +45,7 @@ const updateCartState = (state, action) => {
 };
 
 const cartSlice = createSlice({
-  name: 'cart',
+  name: "cart",
   initialState,
   reducers: {
     clearError: (state) => {
@@ -59,31 +59,33 @@ const cartSlice = createSlice({
         updateCartState(state, action);
       })
       .addCase(updateCartItem.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         // 更新商品后需要重新获取购物车数据
       })
       .addCase(applyPromoCode.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         // 应用优惠码后需要重新获取购物车数据
       })
       .addCase(clearCart.fulfilled, (state) => {
-        state.status = 'succeeded';
+        state.status = "succeeded";
         state.items = [];
         state.total = 0;
         state.itemCount = 0;
         state.promoCode = null;
       })
       .addMatcher(
-        (action) => action.type.startsWith('cart/') && action.type.endsWith('/pending'),
-        (state) => { 
-          state.status = 'loading';
+        (action) =>
+          action.type.startsWith("cart/") && action.type.endsWith("/pending"),
+        (state) => {
+          state.status = "loading";
           state.error = null;
         }
       )
       .addMatcher(
-        (action) => action.type.startsWith('cart/') && action.type.endsWith('/rejected'),
+        (action) =>
+          action.type.startsWith("cart/") && action.type.endsWith("/rejected"),
         (state, action) => {
-          state.status = 'failed';
+          state.status = "failed";
           state.error = action.payload?.message || action.error.message;
         }
       );
