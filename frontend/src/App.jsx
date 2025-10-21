@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import PageHeader from "./components/PageHeader";
 import PageFooter from "./components/PageFooter";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Product from "./pages/Product";
 import Detail from "./pages/Detail";
 import Create from "./pages/Create";
@@ -24,8 +25,22 @@ function App() {
               <Route path="/" element={<Product />} />
               <Route path="/home" element={<Product />} />
               <Route path="/product/:id" element={<Detail />} />
-              <Route path="/create" element={<Create />} />
-              <Route path="/edit/:id" element={<Edit />} />
+              <Route
+                path="/create"
+                element={
+                  <ProtectedRoute>
+                    <Create />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/edit/:id"
+                element={
+                  <ProtectedRoute>
+                    <Edit />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/:email" element={<UpdatePassword />} />
               <Route path="*" element={<Error />} />
             </Routes>

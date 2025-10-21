@@ -96,9 +96,33 @@ const updateProduct = async (req, res, next) => {
   }
 };
 
+const removeProduct = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params?.id);
+    if (!product) {
+      const err = new Error("Not Found");
+      err.statusCode = 404;
+      next(err);
+      return;
+    }
+    if (product.Owner.toString() !== req.user.id) {
+      const err = new Error("Do Not have permssion to update");
+      err.statusCode = 400;
+      next(err);
+      return;
+    }
+    await Product.findByIdAndDelete(req.params?.id);
+    res.json(`Product ${req.params?.id} deleted`);
+  } catch (err) {
+    err.statusCode = 500;
+    next(err);
+  }
+};
+
 module.exports = {
   getAllProduct,
   getOneProduct,
   createProduct,
   updateProduct,
+  removeProduct,
 };

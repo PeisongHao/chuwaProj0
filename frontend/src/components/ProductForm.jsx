@@ -14,6 +14,7 @@ import {
 import { FileImageOutlined } from "@ant-design/icons";
 const { Text } = Typography;
 import { fetchDetailById } from "../feature/product/detailSlice";
+import { fetchAll } from "../feature/product/productSlice";
 
 const ProductForm = () => {
   const { id } = useParams();
@@ -86,6 +87,7 @@ const ProductForm = () => {
         } else {
           messageApi
             .success("Submit success", 3)
+            .then(dispatch(fetchAll({ sort: "fromNew", page: 1 })))
             .then(navigate("/home?sort=fromNew&page=1"));
         }
       }

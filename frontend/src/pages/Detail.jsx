@@ -1,17 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, Link } from "react-router-dom";
-import { Layout, Typography, Row, Col, Tag, Button, InputNumber } from "antd";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import {
+  Layout,
+  Typography,
+  Row,
+  Col,
+  Tag,
+  Button,
+  InputNumber,
+  Modal,
+  message,
+} from "antd";
 import { fetchDetailById } from "../feature/product/detailSlice";
+import { fetchAll } from "../feature/product/productSlice";
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
 const Detail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const detail = useSelector((state) => state.detail.data);
   const status = useSelector((state) => state.detail.status);
+  const token = useSelector((state) => state.auth.token);
   const [count, setCount] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+  const isAdmin = useSelector((state) => state.auth.isAdmin);
 
   useEffect(() => {
     if (status === "idle") {
@@ -29,6 +45,32 @@ const Detail = () => {
     setCount(value);
   };
 
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+  const handleOk = async () => {
+    fetch(`http://localhost:3000/api/product/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }).then((response) => {
+      if (!response.ok) {
+        messageApi.error("Submit error");
+      } else {
+        messageApi
+          .success("Submit success", 3)
+          .then(dispatch(fetchAll({ sort: "fromNew", page: 1 })))
+          .then(navigate("/home?sort=fromNew&page=1"));
+      }
+    });
+    setIsModalOpen(false);
+  };
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
   let product;
   if (status === "loading") {
     product = "Loading...";
@@ -43,6 +85,7 @@ const Detail = () => {
     }
     product = (
       <>
+        {contextHolder}
         <Row style={{ backgroundColor: "#fff" }}>
           <Col span={12}>
             <img
@@ -83,13 +126,39 @@ const Detail = () => {
               defaultValue={0}
               onChange={onChange}
             />
-            <br />
+            &nbsp;
             <Button type="primary" style={{ fontSize: "16px" }}>
               Add To Cart
             </Button>
-            <Link to={`/edit/${id}`}>
-              <Button style={{ fontSize: "16px" }}>Edit</Button>
-            </Link>
+            {isAdmin ? (
+              <>
+                <br />
+                <Link to={`/edit/${id}`}>
+                  <Button style={{ fontSize: "16px" }}>Edit</Button>
+                </Link>
+                &nbsp;
+                <Button
+                  type="primary"
+                  danger
+                  style={{ fontSize: "16px" }}
+                  onClick={showModal}
+                >
+                  Delete
+                </Button>
+                <Modal
+                  title="Warning"
+                  closable={{ "aria-label": "Custom Close Button" }}
+                  open={isModalOpen}
+                  onOk={handleOk}
+                  onCancel={handleCancel}
+                >
+                  Are you sure you want to delete the product? This product will
+                  be permanently removed.
+                </Modal>
+              </>
+            ) : (
+              ""
+            )}
           </Col>
         </Row>
       </>

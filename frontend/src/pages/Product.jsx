@@ -27,6 +27,7 @@ const Product = () => {
   const status = useSelector((state) => state.product.status);
   const [sort, setSort] = useState("fromNew");
   const [page, setPage] = useState("1");
+  const isAdmin = useSelector((state) => state.auth.isAdmin);
 
   useEffect(() => {
     if (searchParams.size === 0) {
@@ -128,26 +129,40 @@ const Product = () => {
                     </Text>
                     <br />
                     <div>
-                      <Space.Compact style={{ width: "48%" }}>
-                        <InputNumber
-                          min={0}
-                          max={item.stock}
-                          defaultValue={0}
-                          style={{ fontSize: "12px" }}
-                        />
-                        <Button style={{ width: "1%" }}>+</Button>
-                      </Space.Compact>
-                      <Link to={`/edit/${item._id}`}>
-                        <Button
-                          style={{
-                            fontSize: "12px",
-                            width: "48%",
-                            float: "right",
-                          }}
-                        >
-                          Edit
-                        </Button>
-                      </Link>
+                      {isAdmin ? (
+                        <>
+                          <Space.Compact style={{ width: "48%" }}>
+                            <InputNumber
+                              min={0}
+                              max={item.stock}
+                              defaultValue={0}
+                              style={{ fontSize: "12px" }}
+                            />
+                            <Button style={{ width: "1%" }}>+</Button>
+                          </Space.Compact>
+                          <Link to={`/edit/${item._id}`}>
+                            <Button
+                              style={{
+                                fontSize: "12px",
+                                width: "48%",
+                                float: "right",
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          </Link>
+                        </>
+                      ) : (
+                        <Space.Compact style={{ width: "100%" }}>
+                          <InputNumber
+                            min={0}
+                            max={item.stock}
+                            defaultValue={0}
+                            style={{ fontSize: "12px" }}
+                          />
+                          <Button style={{ width: "1%" }}>+</Button>
+                        </Space.Compact>
+                      )}
                     </div>
                   </Card>
                 </ConfigProvider>
@@ -190,9 +205,13 @@ const Product = () => {
               { value: "fromHigh", label: "Price: high to low" },
             ]}
           />
-          <Link to={`/create`}>
-            <Button type="primary">Add Product</Button>
-          </Link>
+          {isAdmin ? (
+            <Link to={`/create`}>
+              <Button type="primary">Add Product</Button>
+            </Link>
+          ) : (
+            ""
+          )}
         </Flex>
       </div>
       <br />
