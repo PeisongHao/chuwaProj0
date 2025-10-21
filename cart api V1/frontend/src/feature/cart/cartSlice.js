@@ -54,21 +54,7 @@ const cartSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addMatcher(
-        (action) => action.type.startsWith('cart/') && action.type.endsWith('/pending'),
-        (state) => { 
-          state.status = 'loading';
-          state.error = null;
-        }
-      )
-      .addMatcher(
-        (action) => action.type.startsWith('cart/') && action.type.endsWith('/rejected'),
-        (state, action) => {
-          state.status = 'failed';
-          state.error = action.payload?.message || action.error.message;
-        }
-      )
-      // 购物车状态更新
+      // 购物车状态更新 - addCase 必须在 addMatcher 之前
       .addCase(fetchCart.fulfilled, (state, action) => {
         updateCartState(state, action);
       })
@@ -86,7 +72,21 @@ const cartSlice = createSlice({
         state.total = 0;
         state.itemCount = 0;
         state.promoCode = null;
-      });
+      })
+      .addMatcher(
+        (action) => action.type.startsWith('cart/') && action.type.endsWith('/pending'),
+        (state) => { 
+          state.status = 'loading';
+          state.error = null;
+        }
+      )
+      .addMatcher(
+        (action) => action.type.startsWith('cart/') && action.type.endsWith('/rejected'),
+        (state, action) => {
+          state.status = 'failed';
+          state.error = action.payload?.message || action.error.message;
+        }
+      );
   },
 });
 
