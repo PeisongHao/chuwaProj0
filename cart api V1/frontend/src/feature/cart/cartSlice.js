@@ -29,10 +29,10 @@ const createCartApiCall = (endpoint, method = 'get') => {
   });
 };
 
-export const fetchCart = createCartApiCall('/cart', 'get');
+export const fetchCart = createCartApiCall('cart', 'get');
 export const applyPromoCode = createCartApiCall('/cart/promo', 'post');
 export const updateCartItem = createCartApiCall('/cart/item', 'put');
-export const clearCart = createCartApiCall('/cart', 'delete');
+export const clearCart = createCartApiCall('cart', 'delete');
 
 const updateCartState = (state, action) => {
   state.status = 'succeeded';
