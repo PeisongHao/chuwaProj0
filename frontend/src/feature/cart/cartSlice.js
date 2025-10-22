@@ -19,10 +19,14 @@ const createApiRequest = async (getState, method, endpoint, data = null) => {
       "x-auth-token": token,
       "Content-Type": "application/json",
     },
-    ...(data && { data }),
   };
 
-  const response = await axios[method](`${API_BASE_URL}/${endpoint}`, config);
+  let response;
+  if (data === null) {
+    response = await axios[method](`${API_BASE_URL}/${endpoint}`, config);
+  } else {
+    response = await axios[method](`${API_BASE_URL}/${endpoint}`, data, config);
+  }
   return response.data;
 };
 

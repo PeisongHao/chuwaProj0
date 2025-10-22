@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { SigninModal } from "./SignInModal/SignInModal";
 import { Layout, Col, Typography, Form, Input, Menu } from "antd";
 import { UserOutlined, ShoppingCartOutlined } from "@ant-design/icons";
@@ -11,13 +11,14 @@ const { Text } = Typography;
 
 function PageHeader() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const authToken = useSelector(token);
   const cartTotal = useSelector(selectCartTotal);
 
   useEffect(() => {
     dispatch(fetchCart());
-  }, []);
+  }, [dispatch]);
 
   return (
     <>
@@ -73,10 +74,15 @@ function PageHeader() {
               {
                 key: "2",
                 label: (
-                  <Link to="/cart">
+                  <button
+                    onClick={() => {
+                      dispatch(fetchCart()); // Update Cart before navigating
+                      navigate("/cart");
+                    }}
+                  >
                     <ShoppingCartOutlined style={{ fontSize: "24px" }} />
                     &nbsp; ${cartTotal}
-                  </Link>
+                  </button>
                 ),
               },
             ]}

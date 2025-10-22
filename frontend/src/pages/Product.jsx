@@ -14,6 +14,7 @@ import {
   ConfigProvider,
   Space,
   Modal,
+  message,
 } from "antd";
 const { Content } = Layout;
 const { Text } = Typography;
@@ -25,6 +26,7 @@ const Product = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [messageApi, contextHolder] = message.useMessage();
   const products = useSelector((state) => state.product.data);
   const status = useSelector((state) => state.product.status);
   const [sort, setSort] = useState("fromNew");
@@ -72,7 +74,14 @@ const Product = () => {
     if (token === null) {
       showModal();
     } else {
-      dispatch(updateCartItem({ productId: id, amount: cartNum[index] }));
+      try {
+        dispatch(
+          updateCartItem({ productId: id, amount: cartNum[index] })
+        ).unwrap();
+        messageApi.success("Product Added successfully");
+      } catch {
+        messageApi.error("Error");
+      }
     }
   };
 
@@ -236,42 +245,45 @@ const Product = () => {
   }
 
   return (
-    <Content
-      className="site-layout-background"
-      style={{
-        padding: 24,
-        margin: 0,
-        height: 900,
-        overflow: "auto",
-      }}
-    >
-      <div>
-        <Text strong style={{ fontSize: "30px" }}>
-          Products
-        </Text>
-        <Flex style={{ float: "right", gap: "5px" }}>
-          <Select
-            value={sort}
-            style={{ width: "180px" }}
-            onChange={onSortChange}
-            options={[
-              { value: "fromNew", label: "Last Added" },
-              { value: "fromLow", label: "Price: low to high" },
-              { value: "fromHigh", label: "Price: high to low" },
-            ]}
-          />
-          {isAdmin ? (
-            <Link to={`/create`}>
-              <Button type="primary">Add Product</Button>
-            </Link>
-          ) : (
-            ""
-          )}
-        </Flex>
-      </div>
-      <br />
-      <div>{list}</div>
-    </Content>
+    <>
+      {contextHolder}
+      <Content
+        className="site-layout-background"
+        style={{
+          padding: 24,
+          margin: 0,
+          height: 900,
+          overflow: "auto",
+        }}
+      >
+        <div>
+          <Text strong style={{ fontSize: "30px" }}>
+            Products
+          </Text>
+          <Flex style={{ float: "right", gap: "5px" }}>
+            <Select
+              value={sort}
+              style={{ width: "180px" }}
+              onChange={onSortChange}
+              options={[
+                { value: "fromNew", label: "Last Added" },
+                { value: "fromLow", label: "Price: low to high" },
+                { value: "fromHigh", label: "Price: high to low" },
+              ]}
+            />
+            {isAdmin ? (
+              <Link to={`/create`}>
+                <Button type="primary">Add Product</Button>
+              </Link>
+            ) : (
+              ""
+            )}
+          </Flex>
+        </div>
+        <br />
+        <div>{list}</div>
+      </Content>
+    </>
   );
 };
 

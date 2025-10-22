@@ -73,7 +73,12 @@ const Detail = () => {
     if (token === null) {
       showLogIn();
     } else {
-      dispatch(updateCartItem({ productId: id, amount: cartNum }));
+      try {
+        dispatch(updateCartItem({ productId: id, amount: cartNum })).unwrap();
+        messageApi.success("Product Added successfully");
+      } catch {
+        messageApi.error("Error");
+      }
     }
   };
 
