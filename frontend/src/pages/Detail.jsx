@@ -14,6 +14,7 @@ import {
 } from "antd";
 import { fetchDetailById } from "../feature/product/detailSlice";
 import { fetchAll } from "../feature/product/productSlice";
+import { updateCartItem } from "../feature/cart/cartSlice";
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
@@ -24,8 +25,9 @@ const Detail = () => {
   const detail = useSelector((state) => state.detail.data);
   const status = useSelector((state) => state.detail.status);
   const token = useSelector((state) => state.auth.token);
-  const [count, setCount] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cartNum, setCartNum] = useState(0);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isLogInOpen, setIsLogInOpen] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const isAdmin = useSelector((state) => state.auth.isAdmin);
 
@@ -41,14 +43,10 @@ const Detail = () => {
     }
   }, [status, dispatch, id]);
 
-  const onChange = (value) => {
-    setCount(value);
+  const showDeleteModal = () => {
+    setIsDeleteOpen(true);
   };
-
-  const showModal = () => {
-    setIsModalOpen(true);
-  };
-  const handleOk = async () => {
+  const handleDeleteOk = async () => {
     fetch(`http://localhost:3000/api/product/${id}`, {
       method: "DELETE",
       headers: {
@@ -65,10 +63,29 @@ const Detail = () => {
           .then(navigate("/home?sort=fromNew&page=1"));
       }
     });
-    setIsModalOpen(false);
+    setIsDeleteOpen(false);
   };
-  const handleCancel = () => {
-    setIsModalOpen(false);
+  const handleDeleteCancel = () => {
+    setIsDeleteOpen(false);
+  };
+
+  const handleCart = (id) => {
+    if (token === null) {
+      showLogIn();
+    } else {
+      dispatch(updateCartItem({ productId: id, amount: cartNum }));
+    }
+  };
+
+  const handleInputChange = (value) => {
+    setCartNum(value);
+  };
+
+  const showLogIn = () => {
+    setIsLogInOpen(true);
+  };
+  const handleLogInOk = async () => {
+    setIsLogInOpen(false);
   };
 
   let product;
@@ -124,12 +141,29 @@ const Detail = () => {
               min={0}
               max={detail.stock}
               defaultValue={0}
-              onChange={onChange}
+              onChange={handleInputChange}
             />
             &nbsp;
-            <Button type="primary" style={{ fontSize: "16px" }}>
+            <Button
+              type="primary"
+              style={{ fontSize: "16px" }}
+              onClick={() => handleCart(id)}
+            >
               Add To Cart
             </Button>
+            <Modal
+              title="Error"
+              open={isLogInOpen}
+              closable={false}
+              onOk={handleLogInOk}
+              footer={[
+                <Button type="primary" key="OK" onClick={handleLogInOk}>
+                  OK
+                </Button>,
+              ]}
+            >
+              Please log in to add products
+            </Modal>
             {isAdmin ? (
               <>
                 <br />
@@ -141,16 +175,15 @@ const Detail = () => {
                   type="primary"
                   danger
                   style={{ fontSize: "16px" }}
-                  onClick={showModal}
+                  onClick={showDeleteModal}
                 >
                   Delete
                 </Button>
                 <Modal
                   title="Warning"
-                  closable={{ "aria-label": "Custom Close Button" }}
-                  open={isModalOpen}
-                  onOk={handleOk}
-                  onCancel={handleCancel}
+                  open={isDeleteOpen}
+                  onOk={handleDeleteOk}
+                  onCancel={handleDeleteCancel}
                 >
                   Are you sure you want to delete the product? This product will
                   be permanently removed.

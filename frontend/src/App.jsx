@@ -12,6 +12,7 @@ import Detail from "./pages/Detail";
 import Create from "./pages/Create";
 import Edit from "./pages/Edit";
 import UpdatePassword from "./pages/UpdatePassword";
+import CartPage from "./pages/CartPAge";
 import Error from "./pages/Error";
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
                 }
               />
               <Route path="/:email" element={<UpdatePassword />} />
+              <Route path="/cart" element={<CartPage />} />
               <Route path="*" element={<Error />} />
             </Routes>
           </Content>

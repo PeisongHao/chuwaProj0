@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { SigninModal } from "./SignInModal/SignInModal";
 import { Layout, Col, Typography, Form, Input, Menu } from "antd";
 import { UserOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { token,logout } from "../feature/auth/authSlice";
-import { useSelector,useDispatch } from "react-redux";
+import { token, logout } from "../feature/auth/authSlice";
+import { fetchCart, selectCartTotal } from "../feature/cart/cartSlice";
+import { useSelector, useDispatch } from "react-redux";
 const { Header } = Layout;
 const { Text } = Typography;
 
@@ -11,6 +13,12 @@ function PageHeader() {
   const dispatch = useDispatch();
   const [modalOpen, setModalOpen] = useState(false);
   const authToken = useSelector(token);
+  const cartTotal = useSelector(selectCartTotal);
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, []);
+
   return (
     <>
       {modalOpen && (
@@ -43,7 +51,11 @@ function PageHeader() {
               {
                 key: "1",
                 label: authToken ? (
-                  <button onClick={()=>{dispatch(logout())}}>
+                  <button
+                    onClick={() => {
+                      dispatch(logout());
+                    }}
+                  >
                     <UserOutlined style={{ fontSize: "24px" }} />
                     &nbsp; Log Out
                   </button>
@@ -61,10 +73,10 @@ function PageHeader() {
               {
                 key: "2",
                 label: (
-                  <div>
+                  <Link to="/cart">
                     <ShoppingCartOutlined style={{ fontSize: "24px" }} />
-                    &nbsp; $0.00
-                  </div>
+                    &nbsp; ${cartTotal}
+                  </Link>
                 ),
               },
             ]}

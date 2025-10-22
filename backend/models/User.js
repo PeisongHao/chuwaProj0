@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema({
       },
     },
   ],
+  activePromoCode: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "PromoCode",
+    default: null,
+  },
 });
 
 const User = mongoose.model("User", userSchema);

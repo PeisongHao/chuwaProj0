@@ -15,11 +15,11 @@ export const login = createAsyncThunk(
 
 export const signup = createAsyncThunk(
   "users/signup",
-  async ({ username, password,isAdmin }) => {
+  async ({ username, password, isAdmin }) => {
     const res = await axios.post("http://localhost:3000/api/users", {
       username,
       password,
-      isAdmin
+      isAdmin,
     });
     return res.data;
   }
@@ -28,10 +28,13 @@ export const signup = createAsyncThunk(
 export const updatepwd = createAsyncThunk(
   "users/update ",
   async ({ username, password }) => {
-    const res = await axios.put("http://localhost:3000/api/users/updatePassword", {
-      username,
-      password,
-    });
+    const res = await axios.put(
+      "http://localhost:3000/api/users/updatePassword",
+      {
+        username,
+        password,
+      }
+    );
     return res.data;
   }
 );
@@ -43,22 +46,22 @@ const authSlice = createSlice({
     loading: false,
     error: null,
     productList: null,
-    cartList:null,
-    isAdmin:false
+    //cartList: null,
+    isAdmin: false,
   },
   reducers: {
     logout(state) {
       state.productList = null;
-      state.cartList = null;
+      //state.cartList = null;
       state.token = null;
       state.loading = false;
       state.error = null;
       state.isAdmin = false;
     },
-    clearErrorMessage(state){
+    clearErrorMessage(state) {
       state.error = null;
       state.loading = false;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -70,12 +73,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload?.token || null;
         state.productList = action.payload?.productList || null;
-        state.cartList = action.payload?.cartList || null;
+        //state.cartList = action.payload?.cartList || null;
         state.isAdmin = action.payload?.isAdmin || false;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message|| "Login failed";
+        state.error = action.error.message || "Login failed";
       })
       .addCase(signup.pending, (state) => {
         state.loading = true;
@@ -85,12 +88,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload?.token || null;
         state.productList = action.payload?.productList || null;
-        state.cartList = action.payload?.cartList || null;
+        //state.cartList = action.payload?.cartList || null;
         state.isAdmin = action.payload?.isAdmin || false;
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message|| "Sign Up failed";
+        state.error = action.error.message || "Sign Up failed";
       })
       .addCase(updatepwd.pending, (state) => {
         state.loading = true;
@@ -100,18 +103,17 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload?.token || null;
         state.productList = action.payload?.productList || null;
-        state.cartList = action.payload?.cartList || null;
+        //state.cartList = action.payload?.cartList || null;
         state.isAdmin = action.payload?.isAdmin || false;
       })
       .addCase(updatepwd.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message|| "Update Password failed";
+        state.error = action.error.message || "Update Password failed";
       });
-
   },
 });
 
 export const authErr = (state) => state.auth.error;
-export const { logout,clearErrorMessage } = authSlice.actions;
+export const { logout, clearErrorMessage } = authSlice.actions;
 export const token = (state) => state.auth.token;
 export default authSlice.reducer;

@@ -13,11 +13,13 @@ import {
   Pagination,
   ConfigProvider,
   Space,
+  Modal,
 } from "antd";
 const { Content } = Layout;
 const { Text } = Typography;
 const { Meta } = Card;
 import { fetchAll } from "../feature/product/productSlice";
+import { updateCartItem } from "../feature/cart/cartSlice";
 
 const Product = () => {
   const dispatch = useDispatch();
@@ -27,7 +29,10 @@ const Product = () => {
   const status = useSelector((state) => state.product.status);
   const [sort, setSort] = useState("fromNew");
   const [page, setPage] = useState("1");
+  const [cartNum, setCartNum] = useState([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const isAdmin = useSelector((state) => state.auth.isAdmin);
+  const token = useSelector((state) => state.auth.token);
 
   useEffect(() => {
     if (searchParams.size === 0) {
@@ -63,6 +68,27 @@ const Product = () => {
     );
   };
 
+  const handleCart = (id, index) => {
+    if (token === null) {
+      showModal();
+    } else {
+      dispatch(updateCartItem({ productId: id, amount: cartNum[index] }));
+    }
+  };
+
+  const handleInputChange = (value, index) => {
+    let oldArray = cartNum;
+    oldArray[index] = value;
+    setCartNum(oldArray);
+  };
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+  const handleOk = async () => {
+    setIsModalOpen(false);
+  };
+
   let list;
   if (status === "loading") {
     list = "Loading...";
@@ -84,7 +110,7 @@ const Product = () => {
               xxl: 5,
             }}
             dataSource={products.products}
-            renderItem={(item) => (
+            renderItem={(item, index) => (
               <List.Item>
                 <ConfigProvider
                   theme={{
@@ -137,8 +163,16 @@ const Product = () => {
                               max={item.stock}
                               defaultValue={0}
                               style={{ fontSize: "12px" }}
+                              onChange={(value) =>
+                                handleInputChange(value, index)
+                              }
                             />
-                            <Button style={{ width: "1%" }}>+</Button>
+                            <Button
+                              style={{ width: "1%" }}
+                              onClick={() => handleCart(item._id, index)}
+                            >
+                              +
+                            </Button>
                           </Space.Compact>
                           <Link to={`/edit/${item._id}`}>
                             <Button
@@ -159,8 +193,16 @@ const Product = () => {
                             max={item.stock}
                             defaultValue={0}
                             style={{ fontSize: "12px" }}
+                            onChange={(value) =>
+                              handleInputChange(value, index)
+                            }
                           />
-                          <Button style={{ width: "1%" }}>+</Button>
+                          <Button
+                            style={{ width: "1%" }}
+                            onClick={() => handleCart(item._id, index)}
+                          >
+                            +
+                          </Button>
                         </Space.Compact>
                       )}
                     </div>
@@ -174,6 +216,19 @@ const Product = () => {
             onChange={onPageChange}
             total={products.count}
           />
+          <Modal
+            title="Error"
+            open={isModalOpen}
+            closable={false}
+            onOk={handleOk}
+            footer={[
+              <Button type="primary" key="OK" onClick={handleOk}>
+                OK
+              </Button>,
+            ]}
+          >
+            Please log in to add products
+          </Modal>
         </>
       );
   } else if (status === "failed") {
