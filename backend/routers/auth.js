@@ -13,6 +13,7 @@ router.post("/login", async (req, res, next) => {
       const err = new Error("Not Found");
       err.statusCode = 404;
       next(err);
+      console.log(err);
       return;
     }
     if (user.password !== password) {

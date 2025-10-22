@@ -34,6 +34,13 @@ const createUser = async (req, res, next) => {
       next(err);
       return;
     }
+    const useduser = await User.findOne({ username: req.body?.username });
+    if (!useduser) {
+      const err = new Error("User already exists");
+      err.statusCode = 409;
+      next(err);
+      return;
+    }
     await user.save();
 
     const payload = {

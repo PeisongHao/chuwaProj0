@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { Form, Input, Button, Checkbox } from "antd";
 import { useDispatch } from "react-redux";
@@ -13,6 +13,9 @@ export function SignInUpForm({
 }) {
   const dispatch = useDispatch();
   const [showPwd, setShowPwd] = useState(false);
+  useEffect(()=>{
+    dispatch(clearErrorMessage());
+  });
   return (
     <Form
       layout="vertical"
