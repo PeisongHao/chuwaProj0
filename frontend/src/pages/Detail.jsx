@@ -30,6 +30,7 @@ const Detail = () => {
   const [isLogInOpen, setIsLogInOpen] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const isAdmin = useSelector((state) => state.auth.isAdmin);
+  const items = useSelector((state) => state.cart.items);
 
   useEffect(() => {
     if (status === "idle") {
@@ -74,7 +75,18 @@ const Detail = () => {
       showLogIn();
     } else {
       try {
-        dispatch(updateCartItem({ productId: id, amount: cartNum })).unwrap();
+        let oldNum = 0;
+        items.forEach((element) => {
+          if (element.product._id === id) {
+            oldNum = element.amount;
+            if (oldNum + cartNum > element.stock) {
+              throw new Error("Desired number more than stock");
+            }
+          }
+        });
+        dispatch(
+          updateCartItem({ productId: id, amount: oldNum + cartNum })
+        ).unwrap();
         messageApi.success("Product Added successfully");
       } catch {
         messageApi.error("Error");

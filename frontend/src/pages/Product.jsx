@@ -20,7 +20,7 @@ const { Content } = Layout;
 const { Text } = Typography;
 const { Meta } = Card;
 import { fetchAll } from "../feature/product/productSlice";
-import { updateCartItem } from "../feature/cart/cartSlice";
+import { updateCartItem, selectCartItems } from "../feature/cart/cartSlice";
 
 const Product = () => {
   const dispatch = useDispatch();
@@ -35,6 +35,7 @@ const Product = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isAdmin = useSelector((state) => state.auth.isAdmin);
   const token = useSelector((state) => state.auth.token);
+  const items = useSelector((state) => state.cart.items);
 
   useEffect(() => {
     if (searchParams.size === 0) {
@@ -75,8 +76,17 @@ const Product = () => {
       showModal();
     } else {
       try {
+        let oldNum = 0;
+        items.forEach((element) => {
+          if (element.product._id === id) {
+            oldNum = element.amount;
+            if (oldNum + cartNum[index] > element.stock) {
+              throw new Error("Desired number more than stock");
+            }
+          }
+        });
         dispatch(
-          updateCartItem({ productId: id, amount: cartNum[index] })
+          updateCartItem({ productId: id, amount: oldNum + cartNum[index] })
         ).unwrap();
         messageApi.success("Product Added successfully");
       } catch {
