@@ -35,7 +35,7 @@ const createUser = async (req, res, next) => {
       return;
     }
     const useduser = await User.findOne({ username: req.body?.username });
-    if (!useduser) {
+    if (useduser) {
       const err = new Error("User already exists");
       err.statusCode = 409;
       next(err);
