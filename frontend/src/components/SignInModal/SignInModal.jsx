@@ -5,6 +5,7 @@ import { ForgotPwdForm } from "./ForgotPwdForm";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { authErr, login, signup, token } from "../../feature/auth/authSlice";
+import { clearCart, fetchCart } from "../../feature/cart/cartSlice";
 
 export function SigninModal({ modalOpen, setModalOpen }) {
   const dispatch = useDispatch();
@@ -34,8 +35,12 @@ export function SigninModal({ modalOpen, setModalOpen }) {
   };
 
   useEffect(() => {
-    if (!error && authToken) setModalOpen(false);
-  }, [authToken,error,setModalOpen]);
+    if (!error && authToken) {
+      // 登录成功后获取用户购物车数据
+      dispatch(fetchCart());
+      setModalOpen(false);
+    }
+  }, [authToken, error, setModalOpen, dispatch]);
 
   return (
     <Modal

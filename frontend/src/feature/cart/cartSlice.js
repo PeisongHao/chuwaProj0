@@ -36,8 +36,28 @@ const createCartApiCall = (endpoint, method = "get") => {
   });
 };
 
+// 特殊处理优惠码API调用
+export const applyPromoCode = createAsyncThunk(
+  "cart/applyPromoCode",
+  async (promoCode, { getState }) => {
+    const token = getState().auth.token;
+    const config = {
+      headers: {
+        "x-auth-token": token,
+        "Content-Type": "application/json",
+      },
+    };
+    
+    const response = await axios.post(
+      `${API_BASE_URL}/cart/promo`,
+      { promoCode },
+      config
+    );
+    return response.data;
+  }
+);
+
 export const fetchCart = createCartApiCall("cart", "get");
-export const applyPromoCode = createCartApiCall("cart/promo", "post");
 export const updateCartItem = createCartApiCall("cart/item", "put");
 export const clearCart = createCartApiCall("cart/clear", "delete");
 
@@ -58,6 +78,15 @@ const cartSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    clearCartState: (state) => {
+      // 清空购物车状态（仅前端，不调用API）
+      state.items = [];
+      state.total = 0;
+      state.itemCount = 0;
+      state.promoCode = null;
+      state.status = "idle";
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -68,6 +97,7 @@ const cartSlice = createSlice({
       .addCase(updateCartItem.fulfilled, (state, action) => {
         state.status = "succeeded";
         // 更新商品后需要重新获取购物车数据
+        // 这里不直接更新状态，而是让组件调用 fetchCart 来获取最新数据
       })
       .addCase(applyPromoCode.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -99,7 +129,7 @@ const cartSlice = createSlice({
   },
 });
 
-export const { clearError } = cartSlice.actions;
+export const { clearError, clearCartState } = cartSlice.actions;
 
 // Selectors
 export const selectCartItems = (state) => state.cart.items;
@@ -107,6 +137,9 @@ export const selectCartStatus = (state) => state.cart.status;
 export const selectCartError = (state) => state.cart.error;
 export const selectCartTotal = (state) => state.cart.total;
 export const selectCartItemCount = (state) => state.cart.itemCount;
+export const selectCartTotalQuantity = (state) => {
+  return state.cart.items.reduce((total, item) => total + item.amount, 0);
+};
 export const selectPromoCode = (state) => state.cart.promoCode;
 
 export default cartSlice.reducer;

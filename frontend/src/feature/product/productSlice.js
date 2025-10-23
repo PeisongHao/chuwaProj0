@@ -4,8 +4,9 @@ export const fetchAll = createAsyncThunk(
   "product/all",
   async (params, thunkAPI) => {
     try {
+      const searchParam = params.search ? `&search=${encodeURIComponent(params.search)}` : '';
       const res = await fetch(
-        `http://localhost:3000/api/product/?sort=${params.sort}&page=${params.page}`
+        `http://localhost:3000/api/product/?sort=${params.sort}&page=${params.page}${searchParam}`
       );
       return res.json();
     } catch (err) {

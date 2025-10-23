@@ -14,3 +14,89 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* 响应式设计样式 */
+@media (min-width: 768px) {
+  .cart-layout {
+    grid-template-columns: 1fr 400px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .cart-layout {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* 移动端优化 */
+  .ant-layout-header {
+    padding: 0 8px !important;
+  }
+  
+  .ant-col {
+    padding: 0 4px !important;
+  }
+  
+  /* 产品卡片移动端优化 */
+  .ant-card {
+    margin-bottom: 16px !important;
+  }
+  
+  /* 按钮组移动端优化 */
+  .ant-space-compact {
+    width: 100% !important;
+  }
+  
+  .ant-space-compact .ant-btn {
+    flex: 1 !important;
+  }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 480px) {
+  .ant-layout-content {
+    padding: 8px !important;
+  }
+  
+  .ant-typography {
+    font-size: 14px !important;
+  }
+  
+  .ant-btn {
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+  }
+}
+
+/* 极小屏幕优化 (300px以下) */
+@media (max-width: 350px) {
+  .ant-layout-header {
+    padding: 0 4px !important;
+  }
+  
+  .ant-col {
+    padding: 0 2px !important;
+  }
+  
+  /* 头部文字进一步缩小 */
+  .ant-typography {
+    font-size: 12px !important;
+  }
+  
+  /* 按钮进一步缩小 */
+  .ant-btn {
+    font-size: 10px !important;
+    padding: 2px 4px !important;
+  }
+  
+  /* 菜单项间距缩小 */
+  .ant-menu-horizontal .ant-menu-item {
+    padding: 0 4px !important;
+  }
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1200px) {
+  .ant-layout-content {
+    padding: 24px 48px !important;
+  }
+}

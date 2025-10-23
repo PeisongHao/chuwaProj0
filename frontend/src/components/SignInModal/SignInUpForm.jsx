@@ -37,7 +37,24 @@ export function SignInUpForm({
       <Form.Item
         label="Password"
         name="password"
-        rules={[{ required: true, message: "Please enter your Password" }]}
+        rules={[
+          { required: true, message: "Please enter your password" },
+          { 
+            validator: (_, value) => {
+              if (!value) return Promise.resolve();
+              
+              if (value.length < 8) {
+                return Promise.reject(new Error("Password must be at least 8 characters long"));
+              }
+              
+              if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(value)) {
+                return Promise.reject(new Error("Password must contain uppercase, lowercase, number, and special character"));
+              }
+              
+              return Promise.resolve();
+            }
+          }
+        ]}
       >
         <Input
           key={showPwd ? "text" : "password"}

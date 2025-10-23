@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { updateCartItem } from "../feature/cart/cartSlice";
+import { updateCartItem, fetchCart } from "../feature/cart/cartSlice";
 
 const CartItem = ({ item }) => {
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(item.amount);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // 同步本地状态与 Redux 状态
+  useEffect(() => {
+    setQuantity(item.amount);
+  }, [item.amount]);
 
   console.log(item);
   const handleQuantityChange = async (newQuantity) => {
@@ -19,7 +24,8 @@ const CartItem = ({ item }) => {
           amount: newQuantity,
         })
       ).unwrap();
-      setQuantity(newQuantity);
+      // 更新成功后重新获取购物车数据
+      dispatch(fetchCart());
     } catch (error) {
       console.error("Failed to update cart item:", error);
       // 恢复原数量

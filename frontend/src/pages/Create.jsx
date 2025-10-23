@@ -8,18 +8,26 @@ const Create = () => {
     <Content
       className="site-layout-background"
       style={{
-        padding: 24,
+        padding: "16px",
         margin: 0,
-        height: 800,
+        minHeight: "calc(100vh - 64px)",
         overflow: "auto",
       }}
     >
-      <Title level={2}>Create Product</Title>
-      <Row>
+      <Title level={2} style={{ marginBottom: "24px" }}>Create Product</Title>
+      <Row justify="center">
         <Col
-          span={12}
-          offset={6}
-          style={{ backgroundColor: "#fff", padding: 24 }}
+          xs={24}
+          sm={20}
+          md={16}
+          lg={12}
+          xl={10}
+          style={{ 
+            backgroundColor: "#fff", 
+            padding: "24px",
+            borderRadius: "8px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+          }}
         >
           <ProductForm />
         </Col>

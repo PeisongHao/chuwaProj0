@@ -96,6 +96,10 @@ const authSlice = createSlice({
       state.error = null;
       state.isAdmin = false;
     },
+    clearCartState(state) {
+      // 清空购物车状态（仅前端，不调用API）
+      // 这个action将在用户登出时被调用
+    },
     clearErrorMessage(state) {
       state.error = null;
       state.loading = false;
@@ -154,6 +158,6 @@ const authSlice = createSlice({
 });
 
 export const authErr = (state) => state.auth.error;
-export const { logout, clearErrorMessage } = authSlice.actions;
+export const { logout, clearErrorMessage, clearCartState } = authSlice.actions;
 export const token = (state) => state.auth.token;
 export default authSlice.reducer;

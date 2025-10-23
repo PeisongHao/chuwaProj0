@@ -192,7 +192,7 @@ const CartPage = () => {
       style={{
         maxWidth: "1200px",
         margin: "0 auto",
-        padding: "24px",
+        padding: "16px",
       }}
     >
       {/* 页面标题 */}
@@ -245,10 +245,11 @@ const CartPage = () => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 400px",
-          gap: "32px",
+          gridTemplateColumns: "1fr",
+          gap: "24px",
           alignItems: "start",
         }}
+        className="cart-layout"
       >
         {/* 购物车商品列表 */}
         <div>

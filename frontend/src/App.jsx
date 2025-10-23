@@ -12,7 +12,7 @@ import Detail from "./pages/Detail";
 import Create from "./pages/Create";
 import Edit from "./pages/Edit";
 import UpdatePassword from "./pages/UpdatePassword";
-import CartPage from "./pages/CartPAge";
+import CartPage from "./pages/CartPage";
 import Error from "./pages/Error";
 
 function App() {

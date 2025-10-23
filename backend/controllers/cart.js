@@ -155,17 +155,30 @@ const applyPromoCode = async (req, res, next) => {
       if (!promo) {
         throw new CustomAPIError("Invalid promo code", 404);
       }
-
-      // 检查优惠码是否可用
-      if (!promo.isUsable() || promo.isExpired()) {
+      
+      if (!promo.isActive) {
         throw new CustomAPIError(
-          "Promo code is expired or has reached usage limit",
+          "This promo code is not active",
+          400
+        );
+      }
+      
+      if (promo.isExpired()) {
+        throw new CustomAPIError(
+          "This promo code has expired",
+          400
+        );
+      }
+      
+      if (promo.usageLimit && promo.usedCount >= promo.usageLimit) {
+        throw new CustomAPIError(
+          "You've already used this promo code",
           400
         );
       }
 
       // 获取用户购物车
-      const user = await User.findById(userId).select("cart").session(session);
+      const user = await User.findById(userId).populate('cart.product').session(session);
       if (!user) {
         throw new CustomAPIError("User not found", 404);
       }

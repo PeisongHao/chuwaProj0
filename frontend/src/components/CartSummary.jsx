@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   clearCart,
   applyPromoCode,
+  fetchCart,
   selectCartTotal,
   selectCartItemCount,
   selectPromoCode,
@@ -23,10 +24,22 @@ const CartSummary = () => {
     setIsApplyingPromo(true);
     try {
       await dispatch(applyPromoCode(promoInput.trim())).unwrap();
+      // 应用优惠码成功后重新获取购物车数据
+      await dispatch(fetchCart());
       setPromoInput("");
     } catch (error) {
       console.error("Failed to apply promo code:", error);
-      alert("Invalid promo code. Please try again.");
+      let errorMessage = "Invalid promo code. Please try again.";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (error.payload?.message) {
+        errorMessage = error.payload.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsApplyingPromo(false);
     }

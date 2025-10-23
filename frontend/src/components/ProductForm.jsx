@@ -10,6 +10,7 @@ import {
   Typography,
   Image,
   message,
+  Modal,
 } from "antd";
 import { FileImageOutlined } from "@ant-design/icons";
 const { Text } = Typography;
@@ -71,7 +72,7 @@ const ProductForm = () => {
     fetch(apiUrl, {
       method: method,
       headers: {
-        Authorization: `Bearer ${token}`,
+        "x-auth-token": token,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(value),
@@ -91,6 +92,52 @@ const ProductForm = () => {
             .then(navigate("/home?sort=fromNew&page=1"));
         }
       }
+    });
+  };
+
+  const handleDelete = () => {
+    Modal.confirm({
+      title: "Delete Product",
+      content: `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+      okText: "Delete",
+      cancelText: "Cancel",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          const response = await fetch(`http://localhost:3000/api/product/${id}`, {
+            method: "DELETE",
+            headers: {
+              "x-auth-token": token,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            messageApi.success(result.message || "Product deleted successfully");
+            dispatch(fetchAll({ sort: "fromNew", page: 1 }));
+            navigate("/home");
+          } else {
+            const errorData = await response.json();
+            let errorMessage = "Failed to delete product";
+            
+            if (response.status === 401) {
+              errorMessage = "Please sign in to delete products";
+            } else if (response.status === 403) {
+              errorMessage = "You don't have permission to delete this product";
+            } else if (response.status === 404) {
+              errorMessage = "Product not found";
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+            
+            messageApi.error(errorMessage);
+          }
+        } catch (error) {
+          console.error("Delete error:", error);
+          messageApi.error("Network error. Please try again.");
+        }
+      },
     });
   };
 
@@ -163,16 +210,33 @@ const ProductForm = () => {
           <Form.Item
             label="Product Name"
             name="productName"
-            rules={[{ required: true, message: "This field is required" }]}
+            rules={[
+              { required: true, message: "Please enter the product name" },
+              { min: 2, message: "Product name must be at least 2 characters" },
+              { max: 100, message: "Product name cannot exceed 100 characters" },
+              { 
+                pattern: /^[a-zA-Z0-9\s\-_]+$/, 
+                message: "No special characters except hyphens and underscores" 
+              }
+            ]}
           >
-            <Input />
+            <Input placeholder="Enter product name" />
           </Form.Item>
           <Form.Item
             label="Product Description"
             name="description"
-            rules={[{ required: true, message: "This field is required" }]}
+            rules={[
+              { required: true, message: "Please enter the product description" },
+              { min: 10, message: "Description must be at least 10 characters" },
+              { max: 1000, message: "Description cannot exceed 1000 characters" }
+            ]}
           >
-            <Input.TextArea rows={4} />
+            <Input.TextArea 
+              rows={4} 
+              placeholder="Describe your product in detail..."
+              showCount
+              maxLength={1000}
+            />
           </Form.Item>
           <div style={{ display: "flex", width: "100%", gap: "8px" }}>
             <Form.Item label="Category" name="category">
@@ -184,8 +248,30 @@ const ProductForm = () => {
                 <Select.Option value="Watch">Watch</Select.Option>
               </Select>
             </Form.Item>
-            <Form.Item label="Price" name="price">
-              <Input addonBefore="$" />
+            <Form.Item 
+              label="Price" 
+              name="price"
+              rules={[
+                { required: true, message: "Please enter the product price" },
+                { 
+                  pattern: /^\d+(\.\d{1,2})?$/, 
+                  message: "Enter a valid price (e.g., 19.99)" 
+                },
+                { 
+                  validator: (_, value) => {
+                    const num = parseFloat(value);
+                    if (num <= 0) {
+                      return Promise.reject(new Error("Price must be greater than 0"));
+                    }
+                    if (num > 999999) {
+                      return Promise.reject(new Error("Price cannot exceed $999,999"));
+                    }
+                    return Promise.resolve();
+                  }
+                }
+              ]}
+            >
+              <Input addonBefore="$" placeholder="0.00" />
             </Form.Item>
           </div>
           <div style={{ display: "flex", width: "100%", gap: "8px" }}>
@@ -193,16 +279,30 @@ const ProductForm = () => {
               label="In Stock Quantity"
               name="stock"
               rules={[
-                { pattern: new RegExp(/^[0-9]+$/), message: "Input not valid" },
-                { required: true, message: "This field is required" },
+                { required: true, message: "Please enter the stock quantity" },
+                { pattern: /^\d+$/, message: "Enter a valid number" },
+                { 
+                  validator: (_, value) => {
+                    const num = parseInt(value);
+                    if (num < 0) {
+                      return Promise.reject(new Error("Stock cannot be negative"));
+                    }
+                    if (num > 999999) {
+                      return Promise.reject(new Error("Stock cannot exceed 999,999"));
+                    }
+                    return Promise.resolve();
+                  }
+                }
               ]}
             >
-              <Input />
+              <Input placeholder="0" />
             </Form.Item>
             <Form.Item
               label="Add Image Link"
               name="image"
-              rules={[{ type: "url", message: "Input not valid" }]}
+              rules={[
+                { type: "url", message: "Enter a valid URL (e.g., https://example.com/image.jpg)" }
+              ]}
             >
               <Space.Compact block>
                 <Input defaultValue={image} ref={inputRef} />
@@ -218,9 +318,16 @@ const ProductForm = () => {
           {imageArea}
           <br />
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              {id === undefined ? "Add Product" : "Edit Product"}
-            </Button>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                {id === undefined ? "Add Product" : "Edit Product"}
+              </Button>
+              {id !== undefined && (
+                <Button type="primary" danger onClick={handleDelete}>
+                  Delete Product
+                </Button>
+              )}
+            </Space>
           </Form.Item>
         </Form>
       </>
