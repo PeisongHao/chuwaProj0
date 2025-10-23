@@ -1,11 +1,13 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const router = express.Router();
 
 //使用的是jwt模式
 router.post("/login", async (req, res, next) => {
   try {
+    console.log("Login request body:", req.body);
     const { username, password } = req.body;
     let user = await User.findOne({ username });
 
@@ -16,7 +18,8 @@ router.post("/login", async (req, res, next) => {
       console.log(err);
       return;
     }
-    if (user.password !== password) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       const err = new Error("Invalid Credentials");
       err.statusCode = 400;
       next(err);

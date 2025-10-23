@@ -81,6 +81,7 @@ const CartSummary = () => {
         borderRadius: "8px",
         padding: "24px",
         marginTop: "24px",
+        minHeight: "200px", // 确保有足够的高度
       }}
     >
       <h3

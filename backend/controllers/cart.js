@@ -56,8 +56,16 @@ const getCart = async (req, res, next) => {
       user.activePromoCode = null;
     }
 
-    // 计算基础总价
-    const subtotal = calculateCartTotal(user.cart);
+    // 计算基础总价 - 确保价格是数字类型，过滤掉无效商品
+    const cartForCalculation = user.cart
+      .filter(item => item.product && item.product.price !== null && item.product.price !== undefined)
+      .map(item => ({
+        product: {
+          price: typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price
+        },
+        amount: item.amount
+      }));
+    const subtotal = calculateCartTotal(cartForCalculation);
     let finalTotal = subtotal;
     let discountInfo = null;
 
@@ -81,24 +89,22 @@ const getCart = async (req, res, next) => {
       }
     }
 
-    const cartItems = user.cart.map((item) => ({
-      product: item.product
-        ? {
-            _id: item.product._id,
-            productName: item.product.productName,
-            description: item.product.description,
-            image: item.product.image,
-            price: formatPrice(item.product.price),
-            stock: item.product.stock,
-            category: item.product.category,
-            isAvailable: item.product.stock > 0,
-          }
-        : null,
-      amount: item.amount,
-      itemTotal: item.product
-        ? formatPrice(item.product.price * item.amount)
-        : "0.00",
-    }));
+    const cartItems = user.cart
+      .filter(item => item.product && item.product.price !== null && item.product.price !== undefined)
+      .map((item) => ({
+        product: {
+          _id: item.product._id,
+          productName: item.product.productName,
+          description: item.product.description,
+          image: item.product.image,
+          price: formatPrice(item.product.price),
+          stock: item.product.stock,
+          category: item.product.category,
+          isAvailable: item.product.stock > 0,
+        },
+        amount: item.amount,
+        itemTotal: formatPrice(item.product.price * item.amount),
+      }));
 
     res.status(200).json({
       success: true,
@@ -183,8 +189,14 @@ const applyPromoCode = async (req, res, next) => {
         throw new CustomAPIError("User not found", 404);
       }
 
-      // 计算购物车总价
-      const cartTotal = calculateCartTotal(user.cart);
+      // 计算购物车总价 - 确保价格是数字类型
+      const cartForCalculation = user.cart.map(item => ({
+        product: {
+          price: typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price
+        },
+        amount: item.amount
+      }));
+      const cartTotal = calculateCartTotal(cartForCalculation);
 
       // 检查最低消费要求
       if (cartTotal < promo.minAmount) {

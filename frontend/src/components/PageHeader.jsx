@@ -133,8 +133,14 @@ function PageHeader() {
             
             <button
               onClick={() => {
-                dispatch(fetchCart());
-                navigate("/cart");
+                if (authToken) {
+                  // 用户已登录，获取购物车数据并跳转
+                  dispatch(fetchCart());
+                  navigate("/cart");
+                } else {
+                  // 用户未登录，直接跳转到购物车页面（会显示空购物车或登录提示）
+                  navigate("/cart");
+                }
               }}
               style={{
                 background: "none",

@@ -52,6 +52,8 @@ const CartItem = ({ item }) => {
         gap: "16px",
         backgroundColor: "#fff",
         boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        minWidth: 0, // 防止flex子元素溢出
+        overflow: "hidden", // 隐藏溢出内容
       }}
     >
       {/* 商品图片 */}
@@ -72,13 +74,22 @@ const CartItem = ({ item }) => {
       </div>
 
       {/* 商品信息 */}
-      <div style={{ flex: 1 }}>
+      <div style={{ 
+        flex: 1, 
+        minWidth: 0, 
+        overflow: "hidden",
+        maxWidth: "calc(100% - 200px)", // 为图片和价格留出空间
+      }}>
         <h4
           style={{
             margin: "0 0 8px 0",
             fontSize: "18px",
             fontWeight: "600",
             color: "#333",
+            wordWrap: "break-word",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
           {item.product?.productName || "Unknown Product"}
@@ -89,6 +100,12 @@ const CartItem = ({ item }) => {
             margin: "0 0 8px 0",
             color: "#666",
             fontSize: "14px",
+            wordWrap: "break-word",
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            lineHeight: "1.4",
           }}
         >
           {item.product?.description || "No description available"}
@@ -106,7 +123,13 @@ const CartItem = ({ item }) => {
         </p>
 
         {/* 数量控制 */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: "12px",
+          flexWrap: "wrap", // 允许换行
+          maxWidth: "100%", // 限制最大宽度
+        }}>
           <label style={{ fontSize: "14px", fontWeight: "500" }}>
             Quantity:
           </label>
@@ -124,6 +147,7 @@ const CartItem = ({ item }) => {
                 cursor: quantity <= 0 ? "not-allowed" : "pointer",
                 fontSize: "16px",
                 fontWeight: "bold",
+                flexShrink: 0, // 防止按钮收缩
               }}
             >
               -
@@ -135,6 +159,7 @@ const CartItem = ({ item }) => {
                 textAlign: "center",
                 fontSize: "16px",
                 fontWeight: "500",
+                flexShrink: 0, // 防止数字收缩
               }}
             >
               {isUpdating ? "..." : quantity}
@@ -152,6 +177,7 @@ const CartItem = ({ item }) => {
                 cursor: isUpdating ? "not-allowed" : "pointer",
                 fontSize: "16px",
                 fontWeight: "bold",
+                flexShrink: 0, // 防止按钮收缩
               }}
             >
               +
@@ -162,7 +188,6 @@ const CartItem = ({ item }) => {
             onClick={handleRemove}
             disabled={isUpdating}
             style={{
-              marginLeft: "16px",
               padding: "6px 12px",
               backgroundColor: "#ff4444",
               color: "white",
@@ -171,6 +196,8 @@ const CartItem = ({ item }) => {
               cursor: isUpdating ? "not-allowed" : "pointer",
               fontSize: "14px",
               opacity: isUpdating ? 0.6 : 1,
+              flexShrink: 0, // 防止按钮收缩
+              whiteSpace: "nowrap", // 防止文字换行
             }}
           >
             Remove
@@ -184,6 +211,8 @@ const CartItem = ({ item }) => {
           flexShrink: 0,
           textAlign: "right",
           alignSelf: "flex-start",
+          minWidth: "120px", // 确保有足够空间显示价格
+          maxWidth: "150px", // 限制最大宽度
         }}
       >
         <div
@@ -192,6 +221,8 @@ const CartItem = ({ item }) => {
             fontWeight: "600",
             color: "#333",
             marginBottom: "4px",
+            wordWrap: "break-word",
+            overflow: "hidden",
           }}
         >
           ${itemTotal.toFixed(2)}
@@ -200,6 +231,8 @@ const CartItem = ({ item }) => {
           style={{
             fontSize: "12px",
             color: "#666",
+            wordWrap: "break-word",
+            overflow: "hidden",
           }}
         >
           {item.amount} × ${(parseFloat(item.product?.price) || 0).toFixed(2)}

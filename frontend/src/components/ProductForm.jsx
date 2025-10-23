@@ -54,13 +54,24 @@ const ProductForm = () => {
       if (id !== detail._id) {
         // Do API call again to clear old data
         dispatch(fetchDetailById(id));
+      } else {
+        // 当产品数据加载成功后，初始化图片链接
+        if (detail && detail.image) {
+          setImageLink(detail.image);
+        }
       }
     }
-  }, [status, dispatch, id]);
+  }, [status, dispatch, id, detail]);
 
   const submit = async (value) => {
     value.price = parseInt(value.price);
     value.stock = parseInt(value.stock);
+    
+    // 如果图片链接有更新，使用新的图片链接
+    if (imageLink && imageLink !== "") {
+      value.image = imageLink;
+    }
+    
     let apiUrl, method;
     if (id !== undefined) {
       apiUrl = `http://localhost:3000/api/product/${id}`;
@@ -69,30 +80,35 @@ const ProductForm = () => {
       apiUrl = `http://localhost:3000/api/product/`;
       method = "POST";
     }
-    fetch(apiUrl, {
-      method: method,
-      headers: {
-        "x-auth-token": token,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(value),
-    }).then((response) => {
+    
+    try {
+      const response = await fetch(apiUrl, {
+        method: method,
+        headers: {
+          "x-auth-token": token,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(value),
+      });
+      
       if (!response.ok) {
-        messageApi.error("Submit error");
+        const errorData = await response.json();
+        messageApi.error(errorData.message || "Save failed");
       } else {
         if (id !== undefined) {
-          messageApi
-            .success("Submit success", 3)
-            .then(dispatch(fetchDetailById(id)))
-            .then(navigate(`/product/${id}`));
+          messageApi.success("Product saved successfully!", 3);
+          dispatch(fetchDetailById(id));
+          // 不跳转，停留在编辑页面
         } else {
-          messageApi
-            .success("Submit success", 3)
-            .then(dispatch(fetchAll({ sort: "fromNew", page: 1 })))
-            .then(navigate("/home?sort=fromNew&page=1"));
+          messageApi.success("Product created successfully!", 3);
+          dispatch(fetchAll({ sort: "fromNew", page: 1 }));
+          navigate("/home?sort=fromNew&page=1");
         }
       }
-    });
+    } catch (error) {
+      console.error("Save error:", error);
+      messageApi.error("Network error. Please try again.");
+    }
   };
 
   const handleDelete = () => {
@@ -305,7 +321,14 @@ const ProductForm = () => {
               ]}
             >
               <Space.Compact block>
-                <Input defaultValue={image} ref={inputRef} />
+                <Input 
+                  defaultValue={image} 
+                  ref={inputRef}
+                  onChange={(e) => {
+                    // 当输入框内容改变时，同时更新imageLink状态
+                    setImageLink(e.target.value);
+                  }}
+                />
                 <Button
                   type="primary"
                   onClick={() => setImageLink(inputRef.current.input.value)}
@@ -320,7 +343,7 @@ const ProductForm = () => {
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit">
-                {id === undefined ? "Add Product" : "Edit Product"}
+                {id === undefined ? "Add Product" : "Save Changes"}
               </Button>
               {id !== undefined && (
                 <Button type="primary" danger onClick={handleDelete}>
@@ -340,3 +363,4 @@ const ProductForm = () => {
 };
 
 export default ProductForm;
+
