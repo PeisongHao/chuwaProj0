@@ -189,13 +189,15 @@ const applyPromoCode = async (req, res, next) => {
         throw new CustomAPIError("User not found", 404);
       }
 
-      // 计算购物车总价 - 确保价格是数字类型
-      const cartForCalculation = user.cart.map(item => ({
-        product: {
-          price: typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price
-        },
-        amount: item.amount
-      }));
+      // 计算购物车总价 - 确保价格是数字类型，过滤掉无效商品
+      const cartForCalculation = user.cart
+        .filter(item => item.product && item.product.price !== null && item.product.price !== undefined)
+        .map(item => ({
+          product: {
+            price: typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price
+          },
+          amount: item.amount
+        }));
       const cartTotal = calculateCartTotal(cartForCalculation);
 
       // 检查最低消费要求

@@ -14,6 +14,12 @@ const API_BASE_URL = "http://localhost:3000/api";
 
 const createApiRequest = async (getState, method, endpoint, data = null) => {
   const token = getState().auth.token;
+  
+  // 如果没有token，抛出错误而不是发送请求
+  if (!token) {
+    throw new Error("No authentication token available");
+  }
+  
   const config = {
     headers: {
       "x-auth-token": token,
@@ -41,6 +47,12 @@ export const applyPromoCode = createAsyncThunk(
   "cart/applyPromoCode",
   async (promoCode, { getState }) => {
     const token = getState().auth.token;
+    
+    // 如果没有token，抛出错误
+    if (!token) {
+      throw new Error("No authentication token available");
+    }
+    
     const config = {
       headers: {
         "x-auth-token": token,
