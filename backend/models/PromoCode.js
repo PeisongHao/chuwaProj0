@@ -25,7 +25,7 @@ const promoCodeSchema = new mongoose.Schema({
   },
   maxDiscount: {
     type: Number,
-    default: null,
+    default: null, // 百分比折扣的max
   },
   expiryDate: {
     type: Date,
@@ -33,12 +33,12 @@ const promoCodeSchema = new mongoose.Schema({
   },
   usageLimit: {
     type: Number,
-    default: null,
+    default: null, // 使用次数限制
     min: 1,
   },
   usedCount: {
     type: Number,
-    default: 0,
+    default: 0, // 已使用次数
     min: 0,
   },
   isActive: {
@@ -51,23 +51,20 @@ const promoCodeSchema = new mongoose.Schema({
   },
 });
 
-// 确保优惠码为大写
+// 自动转大写
 promoCodeSchema.pre("save", function (next) {
-  if (this.code) {
-    this.code = this.code.toUpperCase();
-  }
+  if (this.code) this.code = this.code.toUpperCase();
   next();
 });
 
-// 验证优惠码是否过期
+// 检查是否过期
 promoCodeSchema.methods.isExpired = function () {
   return new Date() > this.expiryDate;
 };
 
-// 验证优惠码是否可用
+// 检查是否可用
 promoCodeSchema.methods.isUsable = function () {
-  if (!this.isActive) return false;
-  if (this.isExpired()) return false;
+  if (!this.isActive || this.isExpired()) return false;
   if (this.usageLimit && this.usedCount >= this.usageLimit) return false;
   return true;
 };

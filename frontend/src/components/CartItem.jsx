@@ -7,7 +7,6 @@ const CartItem = ({ item }) => {
   const [quantity, setQuantity] = useState(item.amount);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // 同步本地状态与 Redux 状态
   useEffect(() => {
     setQuantity(item.amount);
   }, [item.amount]);
@@ -24,11 +23,9 @@ const CartItem = ({ item }) => {
           amount: newQuantity,
         })
       ).unwrap();
-      // 更新成功后重新获取购物车数据
       dispatch(fetchCart());
     } catch (error) {
       console.error("Failed to update cart item:", error);
-      // 恢复原数量
       setQuantity(item.amount);
     } finally {
       setIsUpdating(false);
@@ -52,8 +49,8 @@ const CartItem = ({ item }) => {
         gap: "16px",
         backgroundColor: "#fff",
         boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        minWidth: 0, // 防止flex子元素溢出
-        overflow: "hidden", // 隐藏溢出内容
+        minWidth: 0,
+        overflow: "hidden",
       }}
     >
       {/* 商品图片 */}
@@ -78,7 +75,7 @@ const CartItem = ({ item }) => {
         flex: 1, 
         minWidth: 0, 
         overflow: "hidden",
-        maxWidth: "calc(100% - 200px)", // 为图片和价格留出空间
+        maxWidth: "calc(100% - 200px)",
       }}>
         <h4
           style={{
@@ -127,8 +124,8 @@ const CartItem = ({ item }) => {
           display: "flex", 
           alignItems: "center", 
           gap: "12px",
-          flexWrap: "wrap", // 允许换行
-          maxWidth: "100%", // 限制最大宽度
+          flexWrap: "wrap",
+          maxWidth: "100%",
         }}>
           <label style={{ fontSize: "14px", fontWeight: "500" }}>
             Quantity:
@@ -147,7 +144,7 @@ const CartItem = ({ item }) => {
                 cursor: quantity <= 0 ? "not-allowed" : "pointer",
                 fontSize: "16px",
                 fontWeight: "bold",
-                flexShrink: 0, // 防止按钮收缩
+                flexShrink: 0,
               }}
             >
               -
@@ -159,7 +156,7 @@ const CartItem = ({ item }) => {
                 textAlign: "center",
                 fontSize: "16px",
                 fontWeight: "500",
-                flexShrink: 0, // 防止数字收缩
+                flexShrink: 0,
               }}
             >
               {isUpdating ? "..." : quantity}
@@ -177,7 +174,7 @@ const CartItem = ({ item }) => {
                 cursor: isUpdating ? "not-allowed" : "pointer",
                 fontSize: "16px",
                 fontWeight: "bold",
-                flexShrink: 0, // 防止按钮收缩
+                flexShrink: 0,
               }}
             >
               +
@@ -197,7 +194,7 @@ const CartItem = ({ item }) => {
               fontSize: "14px",
               opacity: isUpdating ? 0.6 : 1,
               flexShrink: 0, // 防止按钮收缩
-              whiteSpace: "nowrap", // 防止文字换行
+              whiteSpace: "nowrap",
             }}
           >
             Remove
@@ -211,8 +208,8 @@ const CartItem = ({ item }) => {
           flexShrink: 0,
           textAlign: "right",
           alignSelf: "flex-start",
-          minWidth: "120px", // 确保有足够空间显示价格
-          maxWidth: "150px", // 限制最大宽度
+          minWidth: "120px",
+          maxWidth: "150px",
         }}
       >
         <div

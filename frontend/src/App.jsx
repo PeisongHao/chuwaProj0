@@ -42,8 +42,8 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/:email" element={<UpdatePassword />} />
               <Route path="/cart" element={<CartPage />} />
+              <Route path="/updatePassword/:email" element={<UpdatePassword />} />
               <Route path="*" element={<Error />} />
             </Routes>
           </Content>

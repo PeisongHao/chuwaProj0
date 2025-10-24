@@ -69,7 +69,7 @@ const Product = () => {
     }
   }, [status, dispatch, searchParams]);
 
-  // 初始化cartNum数组
+  
   useEffect(() => {
     if (products && products.products) {
       setCartNum(new Array(products.products.length).fill(0));
@@ -97,7 +97,7 @@ const Product = () => {
   };
 
 
-  // 获取购物车中某个商品的数量
+  // 获取商品的数量
   const getCartQuantity = (productId) => {
     const cartItem = items.find(item => item.product._id === productId);
     return cartItem ? cartItem.amount : 0;
@@ -110,7 +110,7 @@ const Product = () => {
   };
 
   const handleQuantityChange = (index, change) => {
-    // 检查用户是否已登录
+    // 检查用户是否登录
     if (!token) {
       messageApi.warning("Please sign in to add items to cart");
       return;
@@ -137,7 +137,7 @@ const Product = () => {
         dispatch(
           updateCartItem({ productId: productId, amount: newQuantity })
         ).unwrap().then(() => {
-          // 更新成功后重新获取购物车数据以更新头部显示
+          // 更新成功后重新获取购物车数据 -更新头部
           dispatch(fetchCart());
         }).catch((error) => {
           if (error.response?.status === 401) {
@@ -172,7 +172,7 @@ const Product = () => {
         "No products found."
       ) : (
         <>
-          {/* 移动端搜索框 */}
+          {/* mobile */}
           <div style={{ marginBottom: 20 }}>
             <Input.Search
               placeholder="Search products..."

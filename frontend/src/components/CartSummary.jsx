@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   clearCart,
@@ -7,6 +7,8 @@ import {
   selectCartTotal,
   selectCartItemCount,
   selectPromoCode,
+  selectCartError,
+  clearError,
 } from "../feature/cart/cartSlice";
 
 const CartSummary = () => {
@@ -14,32 +16,32 @@ const CartSummary = () => {
   const total = useSelector(selectCartTotal);
   const itemCount = useSelector(selectCartItemCount);
   const promoCode = useSelector(selectPromoCode);
+  const cartError = useSelector(selectCartError);
   const [promoInput, setPromoInput] = useState("");
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [promoError, setPromoError] = useState("");
+
+  // 显示promo code错误
+  useEffect(() => {
+    if (cartError) {
+      setPromoError(cartError);
+      dispatch(clearError());
+    }
+  }, [cartError, dispatch]);
 
   const handleApplyPromo = async () => {
     if (!promoInput.trim()) return;
 
+    setPromoError("");
     setIsApplyingPromo(true);
+    
     try {
       await dispatch(applyPromoCode(promoInput.trim())).unwrap();
-      // 应用优惠码成功后重新获取购物车数据
-      await dispatch(fetchCart());
+      await dispatch(fetchCart()); // 重新获取购物车数据
       setPromoInput("");
     } catch (error) {
       console.error("Failed to apply promo code:", error);
-      let errorMessage = "Invalid promo code. Please try again.";
-      
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      } else if (error.payload?.message) {
-        errorMessage = error.payload.message;
-      }
-      
-      alert(errorMessage);
     } finally {
       setIsApplyingPromo(false);
     }
@@ -59,15 +61,13 @@ const CartSummary = () => {
     }
   };
 
+  // 计算折扣
   const calculateDiscount = () => {
     if (!promoCode) return 0;
-
-    if (promoCode.type === "percentage") {
-      return (total * promoCode.value) / 100;
-    } else if (promoCode.type === "fixed") {
-      return promoCode.value;
-    }
-    return 0;
+    
+    return promoCode.type === "percentage" 
+      ? (total * promoCode.value) / 100
+      : promoCode.value;
   };
 
   const discountAmount = calculateDiscount();
@@ -81,7 +81,7 @@ const CartSummary = () => {
         borderRadius: "8px",
         padding: "24px",
         marginTop: "24px",
-        minHeight: "200px", // 确保有足够的高度
+        minHeight: "200px",
       }}
     >
       <h3
@@ -95,7 +95,6 @@ const CartSummary = () => {
         Cart Summary
       </h3>
 
-      {/* 商品统计 */}
       <div style={{ marginBottom: "16px" }}>
         <div
           style={{
@@ -110,7 +109,7 @@ const CartSummary = () => {
           <span>${parseFloat(total).toFixed(2)}</span>
         </div>
 
-        {/* 优惠码输入 */}
+        {/* promo code输入框 */}
         <div style={{ marginBottom: "16px" }}>
           <div
             style={{
@@ -122,12 +121,15 @@ const CartSummary = () => {
             <input
               type="text"
               value={promoInput}
-              onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+              onChange={(e) => {
+                setPromoInput(e.target.value.toUpperCase());
+                if (promoError) setPromoError(""); // 输入时清除错误
+              }}
               placeholder="Enter promo code"
               style={{
                 flex: 1,
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: promoError ? "1px solid #dc3545" : "1px solid #ddd",
                 borderRadius: "4px",
                 fontSize: "14px",
               }}
@@ -151,7 +153,22 @@ const CartSummary = () => {
             </button>
           </div>
 
-          {/* 已应用的优惠码 */}
+          {promoError && (
+            <div
+              style={{
+                padding: "8px 12px",
+                backgroundColor: "#f8d7da",
+                border: "1px solid #f5c6cb",
+                borderRadius: "4px",
+                fontSize: "14px",
+                color: "#721c24",
+                marginBottom: "8px",
+              }}
+            >
+              {promoError}
+            </div>
+          )}
+
           {promoCode && (
             <div
               style={{
@@ -163,15 +180,11 @@ const CartSummary = () => {
                 color: "#155724",
               }}
             >
-              ✅ {promoCode.code} applied -{" "}
-              {promoCode.type === "percentage"
-                ? `${promoCode.value}% off`
-                : `$${promoCode.value} off`}
+              {promoCode.code} applied - {promoCode.type === "percentage" ? `${promoCode.value}% off` : `$${promoCode.value} off`}
             </div>
           )}
         </div>
 
-        {/* 折扣显示 */}
         {discountAmount > 0 && (
           <div
             style={{
@@ -188,7 +201,6 @@ const CartSummary = () => {
         )}
       </div>
 
-      {/* 分隔线 */}
       <div
         style={{
           borderTop: "1px solid #e0e0e0",
@@ -196,7 +208,6 @@ const CartSummary = () => {
         }}
       ></div>
 
-      {/* 总计 */}
       <div
         style={{
           display: "flex",
@@ -211,7 +222,6 @@ const CartSummary = () => {
         <span>${finalTotal.toFixed(2)}</span>
       </div>
 
-      {/* 操作按钮 */}
       <div
         style={{
           display: "flex",
@@ -219,10 +229,9 @@ const CartSummary = () => {
           flexDirection: "column",
         }}
       >
+        {/* 结账按钮 - for reminding */}
         <button
-          onClick={() =>
-            alert("Checkout functionality would be implemented here")
-          }
+          onClick={() => alert("Checkout functionality would be implemented here")}
           disabled={itemCount === 0}
           style={{
             width: "100%",

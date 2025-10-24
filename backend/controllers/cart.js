@@ -9,10 +9,7 @@ const {
   formatPrice,
 } = require("../utils/priceCalculator");
 
-/**
- * @param {string} userId
- * @returns {Object} 用户对象（包含populate的购物车和优惠码信息）
- */
+// 获取用户购物车数据
 const getUserCart = async (userId) => {
   const user = await User.findById(userId).populate([
     {
@@ -23,8 +20,7 @@ const getUserCart = async (userId) => {
     {
       path: "activePromoCode",
       model: "PromoCode",
-      select:
-        "_id code discountType discountValue minAmount maxDiscount expiryDate isActive usageLimit usedCount", // 只选择需要的字段
+      select: "_id code discountType discountValue minAmount maxDiscount expiryDate isActive usageLimit usedCount",
     },
   ]);
 
@@ -34,31 +30,21 @@ const getUserCart = async (userId) => {
   return user;
 };
 
-/**
- * @desc    获取用户的购物车详情（
- * @route   GET /api/cart
- * @access  Private
- */
+// 获取购物车
 const getCart = async (req, res, next) => {
   try {
     const user = await getUserCart(req.user.id);
 
-    // 检查已应用的优惠码是否过期
-    if (
-      user.activePromoCode &&
-      (user.activePromoCode.isExpired() || !user.activePromoCode.isUsable())
-    ) {
-      User.findByIdAndUpdate(user._id, {
-        $unset: { activePromoCode: "" },
-      }).catch((err) =>
-        console.error("Failed to remove expired promo code:", err)
-      );
+    // 检查promo code是否过期
+    if (user.activePromoCode && (user.activePromoCode.isExpired() || !user.activePromoCode.isUsable())) {
+      User.findByIdAndUpdate(user._id, { $unset: { activePromoCode: "" } })
+        .catch(err => console.error("Failed to remove expired promo code:", err));
       user.activePromoCode = null;
     }
 
-    // 计算基础总价 - 确保价格是数字类型，过滤掉无效商品
+    // 计算总价
     const cartForCalculation = user.cart
-      .filter(item => item.product && item.product.price !== null && item.product.price !== undefined)
+      .filter(item => item.product && item.product.price != null)
       .map(item => ({
         product: {
           price: typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price
@@ -69,13 +55,10 @@ const getCart = async (req, res, next) => {
     let finalTotal = subtotal;
     let discountInfo = null;
 
-    // 如果有有效的优惠码，计算折扣
+    // 计算折扣
     if (user.activePromoCode && subtotal >= user.activePromoCode.minAmount) {
       try {
-        const discountResult = applyPromoDiscount(
-          subtotal,
-          user.activePromoCode
-        );
+        const discountResult = applyPromoDiscount(subtotal, user.activePromoCode);
         finalTotal = discountResult.finalAmount;
         discountInfo = {
           code: user.activePromoCode.code,
@@ -90,8 +73,8 @@ const getCart = async (req, res, next) => {
     }
 
     const cartItems = user.cart
-      .filter(item => item.product && item.product.price !== null && item.product.price !== undefined)
-      .map((item) => ({
+      .filter(item => item.product && item.product.price != null)
+      .map(item => ({
         product: {
           _id: item.product._id,
           productName: item.product.productName,
@@ -121,11 +104,7 @@ const getCart = async (req, res, next) => {
   }
 };
 
-/**
- * @desc    应用或移除优惠码
- * @route   POST /api/cart/promo
- * @access  Private
- */
+// 应用promo code
 const applyPromoCode = async (req, res, next) => {
   const session = await mongoose.startSession();
 
@@ -134,28 +113,19 @@ const applyPromoCode = async (req, res, next) => {
       const { promoCode } = req.body;
       const userId = req.user.id;
 
-      // 如果promoCode为空，移除当前优惠码
+      // 移除promo code
       if (!promoCode) {
-        await User.findByIdAndUpdate(
-          userId,
-          { $unset: { activePromoCode: "" } },
-          { session }
-        );
+        await User.findByIdAndUpdate(userId, { $unset: { activePromoCode: "" } }, { session });
         return;
       }
 
-      // 验证输入
       if (typeof promoCode !== "string" || !promoCode.trim()) {
         throw new CustomAPIError("Please provide a valid promo code", 400);
       }
 
-      // 查找优惠码
-      const promo = await PromoCode.findOne({
-        code: promoCode.toUpperCase().trim(),
-      })
-        .select(
-          "_id code discountType discountValue minAmount maxDiscount expiryDate isActive usageLimit usedCount"
-        )
+      // 查找promo code
+      const promo = await PromoCode.findOne({ code: promoCode.toUpperCase().trim() })
+        .select("_id code discountType discountValue minAmount maxDiscount expiryDate isActive usageLimit usedCount")
         .session(session);
 
       if (!promo) {
@@ -163,33 +133,23 @@ const applyPromoCode = async (req, res, next) => {
       }
       
       if (!promo.isActive) {
-        throw new CustomAPIError(
-          "This promo code is not active",
-          400
-        );
+        throw new CustomAPIError("This promo code is not active", 400);
       }
       
       if (promo.isExpired()) {
-        throw new CustomAPIError(
-          "This promo code has expired",
-          400
-        );
+        throw new CustomAPIError("This promo code has expired", 400);
       }
       
       if (promo.usageLimit && promo.usedCount >= promo.usageLimit) {
-        throw new CustomAPIError(
-          "You've already used this promo code",
-          400
-        );
+        throw new CustomAPIError("You've already used this promo code", 400);
       }
 
-      // 获取用户购物车
       const user = await User.findById(userId).populate('cart.product').session(session);
       if (!user) {
         throw new CustomAPIError("User not found", 404);
       }
 
-      // 计算购物车总价 - 确保价格是数字类型
+      // 计算购物车总价
       const cartForCalculation = user.cart.map(item => ({
         product: {
           price: typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price
@@ -198,25 +158,12 @@ const applyPromoCode = async (req, res, next) => {
       }));
       const cartTotal = calculateCartTotal(cartForCalculation);
 
-      // 检查最低消费要求
       if (cartTotal < promo.minAmount) {
-        throw new CustomAPIError(
-          `Minimum amount $${promo.minAmount} required for this promo code`,
-          400
-        );
+        throw new CustomAPIError(`Minimum amount $${promo.minAmount} required for this promo code`, 400);
       }
 
-      await User.findByIdAndUpdate(
-        userId,
-        { activePromoCode: promo._id },
-        { session }
-      );
-
-      await PromoCode.findByIdAndUpdate(
-        promo._id,
-        { $inc: { usedCount: 1 } },
-        { session }
-      );
+      await User.findByIdAndUpdate(userId, { activePromoCode: promo._id }, { session });
+      await PromoCode.findByIdAndUpdate(promo._id, { $inc: { usedCount: 1 } }, { session });
     });
 
     res.status(200).json({
@@ -230,11 +177,7 @@ const applyPromoCode = async (req, res, next) => {
   }
 };
 
-/**
- * @desc    清空购物车
- * @route   DELETE /api/cart/clear
- * @access  Private
- */
+// 清空购物车
 const clearCart = async (req, res, next) => {
   const session = await mongoose.startSession();
 
@@ -242,13 +185,10 @@ const clearCart = async (req, res, next) => {
     await session.withTransaction(async () => {
       const userId = req.user.id;
 
-      // 同时清空购物车和已应用的优惠码
+      // 清空购物车和promo code
       const result = await User.findByIdAndUpdate(
         userId,
-        {
-          $set: { cart: [] },
-          $unset: { activePromoCode: "" },
-        },
+        { $set: { cart: [] }, $unset: { activePromoCode: "" } },
         { session }
       );
 
@@ -268,11 +208,7 @@ const clearCart = async (req, res, next) => {
   }
 };
 
-/**
- * @desc    更新购物车商品数量
- * @route   PUT /api/cart/item
- * @access  Private
- */
+// 更新购物车商品
 const updateCartItem = async (req, res, next) => {
   const session = await mongoose.startSession();
 
@@ -290,23 +226,14 @@ const updateCartItem = async (req, res, next) => {
         throw new CustomAPIError("User not found", 404);
       }
 
-      // 查找商品在购物车中的位置
-      const itemIndex = user.cart.findIndex(
-        (item) => item.product.toString() === productId
-      );
+      const itemIndex = user.cart.findIndex(item => item.product.toString() === productId);
 
       if (amount === 0) {
-        // 如果数量为0，移除商品
-        user.cart.splice(itemIndex, 1);
+        user.cart.splice(itemIndex, 1); // 移除商品
       } else if (itemIndex >= 0) {
-        // 更新现有商品数量
-        user.cart[itemIndex].amount = amount;
+        user.cart[itemIndex].amount = amount; // 更新数量
       } else {
-        // 添加新商品到购物车
-        user.cart.push({
-          product: productId,
-          amount: amount,
-        });
+        user.cart.push({ product: productId, amount: amount }); // 添加新商品
       }
 
       await user.save({ session });

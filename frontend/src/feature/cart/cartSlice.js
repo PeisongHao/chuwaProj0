@@ -36,10 +36,10 @@ const createCartApiCall = (endpoint, method = "get") => {
   });
 };
 
-// 特殊处理优惠码API调用
+// promo code处理
 export const applyPromoCode = createAsyncThunk(
   "cart/applyPromoCode",
-  async (promoCode, { getState }) => {
+  async (promoCode, { getState, rejectWithValue }) => {
     const token = getState().auth.token;
     const config = {
       headers: {
@@ -48,12 +48,19 @@ export const applyPromoCode = createAsyncThunk(
       },
     };
     
-    const response = await axios.post(
-      `${API_BASE_URL}/cart/promo`,
-      { promoCode },
-      config
-    );
-    return response.data;
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/cart/promo`,
+        { promoCode },
+        config
+      );
+      return response.data;
+    } catch (error) {
+      if (error.response?.data?.message) {
+        return rejectWithValue({ message: error.response.data.message });
+      }
+      return rejectWithValue({ message: error.message || "Failed to apply promo code" });
+    }
   }
 );
 
@@ -79,7 +86,6 @@ const cartSlice = createSlice({
       state.error = null;
     },
     clearCartState: (state) => {
-      // 清空购物车状态（仅前端，不调用API）
       state.items = [];
       state.total = 0;
       state.itemCount = 0;
@@ -90,18 +96,18 @@ const cartSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // 购物车状态更新 - addCase 必须在 addMatcher 之前
       .addCase(fetchCart.fulfilled, (state, action) => {
         updateCartState(state, action);
       })
       .addCase(updateCartItem.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // 更新商品后需要重新获取购物车数据
-        // 这里不直接更新状态，而是让组件调用 fetchCart 来获取最新数据
       })
       .addCase(applyPromoCode.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // 应用优惠码后需要重新获取购物车数据
+      })
+      .addCase(applyPromoCode.rejected, (state, action) => {
+        state.status = "succeeded"; // promo code错误不能影响购物车状态
+        state.error = action.payload?.message || action.error.message;
       })
       .addCase(clearCart.fulfilled, (state) => {
         state.status = "succeeded";
@@ -120,7 +126,9 @@ const cartSlice = createSlice({
       )
       .addMatcher(
         (action) =>
-          action.type.startsWith("cart/") && action.type.endsWith("/rejected"),
+          action.type.startsWith("cart/") && 
+          action.type.endsWith("/rejected") &&
+          action.type !== "cart/applyPromoCode/rejected",
         (state, action) => {
           state.status = "failed";
           state.error = action.payload?.message || action.error.message;
@@ -131,7 +139,6 @@ const cartSlice = createSlice({
 
 export const { clearError, clearCartState } = cartSlice.actions;
 
-// Selectors
 export const selectCartItems = (state) => state.cart.items;
 export const selectCartStatus = (state) => state.cart.status;
 export const selectCartError = (state) => state.cart.error;

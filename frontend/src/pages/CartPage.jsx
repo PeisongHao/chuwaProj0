@@ -20,22 +20,16 @@ const CartPage = () => {
   const itemCount = useSelector(selectCartItemCount);
   const authToken = useSelector(token);
 
-  // 响应式状态
   const [isMobile, setIsMobile] = useState(false);
 
-  // 监听窗口大小变化
+  // responsive design
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
+    const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
+    
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
-
-  // 响应式样式
   const responsiveStyles = {
     cartLayout: {
       display: isMobile ? "block" : "flex",
@@ -55,24 +49,21 @@ const CartPage = () => {
     },
   };
 
+  // 登录后获取购物车数据
   useEffect(() => {
     if (cartStatus === "idle" && authToken) {
-      // 只有在用户已登录且购物车状态为空闲时才获取购物车数据
       dispatch(fetchCart());
     }
   }, [cartStatus, dispatch, authToken]);
 
-  // 清除错误状态
+  // 自动清除错误
   useEffect(() => {
     if (cartError) {
-      const timer = setTimeout(() => {
-        dispatch(clearError());
-      }, 5000);
+      const timer = setTimeout(() => dispatch(clearError()), 5000);
       return () => clearTimeout(timer);
     }
   }, [cartError, dispatch]);
 
-  // 未登录状态
   if (!authToken) {
     return (
       <div
@@ -99,7 +90,7 @@ const CartPage = () => {
               marginBottom: "20px",
             }}
           >
-            🛒
+            Cart
           </div>
           <h2 style={{ margin: "0 0 16px 0", color: "#333" }}>
             Please Sign In
@@ -108,10 +99,7 @@ const CartPage = () => {
             You need to be signed in to view your shopping cart.
           </p>
           <button
-            onClick={() => {
-              // 这里可以触发登录模态框或跳转到登录页面
-              window.location.reload(); // 临时解决方案，刷新页面会触发登录检查
-            }}
+            onClick={() => window.location.reload()}
             style={{
               padding: "12px 24px",
               backgroundColor: "#007bff",
@@ -130,7 +118,6 @@ const CartPage = () => {
     );
   }
 
-  // 加载状态
   if (cartStatus === "loading") {
     return (
       <div
@@ -161,7 +148,6 @@ const CartPage = () => {
     );
   }
 
-  // 错误状态
   if (cartStatus === "failed") {
     return (
       <div
@@ -181,7 +167,7 @@ const CartPage = () => {
             color: "#dc3545",
           }}
         >
-          ⚠️
+          Error
         </div>
         <h3
           style={{
@@ -219,7 +205,6 @@ const CartPage = () => {
     );
   }
 
-  // 空购物车状态
   if (cartStatus === "succeeded" && cartItems.length === 0) {
     return (
       <div
@@ -240,7 +225,7 @@ const CartPage = () => {
             color: "#ccc",
           }}
         >
-          🛒
+          Empty
         </div>
         <h2
           style={{
@@ -263,7 +248,7 @@ const CartPage = () => {
           shopping to add some great products!
         </p>
         <button
-          onClick={() => (window.location.href = "/")}
+          onClick={() => window.location.href = "/"}
           style={{
             padding: "12px 24px",
             backgroundColor: "#007bff",
@@ -282,7 +267,6 @@ const CartPage = () => {
     );
   }
 
-  // 正常状态 - 显示购物车内容
   return (
     <div
       style={{
@@ -292,7 +276,6 @@ const CartPage = () => {
         width: "100%",
       }}
     >
-      {/* 页面标题 */}
       <div
         style={{
           marginBottom: "32px",
@@ -321,7 +304,6 @@ const CartPage = () => {
         </p>
       </div>
 
-      {/* 错误提示 */}
       {cartError && (
         <div
           style={{
@@ -334,16 +316,14 @@ const CartPage = () => {
             fontSize: "14px",
           }}
         >
-          ⚠️ {cartError}
+          {cartError}
         </div>
       )}
 
-      {/* 主要内容区域 - 响应式布局 */}
       <div
         className="cart-layout"
         style={responsiveStyles.cartLayout}
       >
-        {/* 购物车商品列表 */}
         <div style={responsiveStyles.cartItems}>
           <h2
             style={{
@@ -361,7 +341,6 @@ const CartPage = () => {
           ))}
         </div>
 
-        {/* 购物车摘要 */}
         <div style={responsiveStyles.cartSummary}>
           <CartSummary />
         </div>
